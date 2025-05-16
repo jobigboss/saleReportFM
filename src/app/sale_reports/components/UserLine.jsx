@@ -16,7 +16,6 @@ function UserPage() {
     pictureUrl: "",
   });
 
-  const [isReady, setIsReady] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,16 +38,6 @@ function UserPage() {
           displayName: profile.displayName,
           pictureUrl: profile.pictureUrl,
         });
-
-        // ✅ เช็คว่าลงทะเบียนแล้วหรือยัง
-        const res = await fetch(`/api/checkUser?lineID=${lineID}`);
-        const result = await res.json();
-
-        if (result.exists) {
-          window.location.href = `/form-continue?lineID=${lineID}`;
-        } else {
-          setIsReady(true);
-        }
       } catch (err) {
         console.error("LIFF init error:", err);
         Swal.fire({
@@ -129,7 +118,7 @@ function UserPage() {
     }
   };
 
-  if (loading || !isReady) {
+  if (loading) {
     return <p className="text-center mt-10 text-gray-500 animate-pulse">กำลังโหลดข้อมูลจาก LINE...</p>;
   }
 

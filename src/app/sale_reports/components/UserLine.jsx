@@ -17,13 +17,15 @@ function UserPage() {
   });
 
   const [isReady, setIsReady] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const initLiff = async () => {
       try {
         await liff.init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID });
         if (!liff.isLoggedIn()) {
-          liff.login();
+          liff.login({ redirectUri: window.location.href });
+          return;
         }
         const profile = await liff.getProfile();
         const lineID = profile.userId;
@@ -49,6 +51,13 @@ function UserPage() {
         }
       } catch (err) {
         console.error("LIFF init error:", err);
+        Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาด",
+          text: "ไม่สามารถโหลดข้อมูลจาก LINE ได้",
+        });
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -120,12 +129,12 @@ function UserPage() {
     }
   };
 
-  if (!isReady) {
-    return <p className="text-center mt-10 text-gray-500">กำลังโหลดข้อมูล...</p>;
+  if (loading || !isReady) {
+    return <p className="text-center mt-10 text-gray-500 animate-pulse">กำลังโหลดข้อมูลจาก LINE...</p>;
   }
 
   return (
-    <div className="w-full max-w-3xl bg-white p-8 rounded-xl shadow-lg space-y-6 mx-auto">
+    <div className="w-full max-w-3xl bg-white p-8 rounded-xl shadow-lg space-y-6 mx-auto animate-fade-in">
       <h2 className="text-2xl font-semibold text-gray-700 mb-4">
         แนะนำตัวให้ผมรู้จักคุณหน่อยครับ
       </h2>

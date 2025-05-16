@@ -21,13 +21,16 @@ function UserPage() {
   useEffect(() => {
     const initLiff = async () => {
       try {
-        await liff.init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID });
+        if (!liff.isInitialized) {
+          await liff.init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID });
+        }
         if (!liff.isLoggedIn()) {
           liff.login({ redirectUri: window.location.href });
           return;
         }
         const profile = await liff.getProfile();
-        const lineID = profile.userId;
+        const idToken = liff.getIDToken();
+        const lineID = profile.userId || idToken || "";
 
         setUserData((prev) => ({
           ...prev,

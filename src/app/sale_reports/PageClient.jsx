@@ -22,9 +22,8 @@ function LoadingLottie({ text = "🚚 กำลังโหลดข้อมู
   return (
     <div className="fixed inset-0 z-50 bg-white/70 backdrop-blur-md flex flex-col items-center justify-center">
       {animationData && (
-        <Lottie animationData={animationData} loop className="w-[130px] h-[130px] mb-4" />
+        <Lottie animationData={animationData} loop className="w-[150px] h-[150px] mb-4" />
       )}
-      <p className="text-[#0076CE] text-lg font-semibold">{text}</p>
     </div>
   );
 }

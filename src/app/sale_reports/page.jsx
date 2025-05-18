@@ -1,6 +1,8 @@
 import React from 'react';
 import Container from '../components/Container';
 import UserLine from './components/UserLine';
+import Sale from './components/MultistepForm';
+
 
 function SaleReportPage() {
 
@@ -8,8 +10,7 @@ function SaleReportPage() {
 
 return (
     <Container>
-        <UserLine/>
-        
+        <Sale/>
     </Container>
   )
 }

@@ -1,8 +1,34 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import liff from "@line/liff";
 import UserLine from "./components/UserLine";
 import SaleReport from "./components/MultistepForm";
+
+// ✅ โหลด Lottie ที่นี่ได้
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
+
+function LoadingLottie() {
+  const [animationData, setAnimationData] = useState(null);
+
+  useEffect(() => {
+    const load = async () => {
+      const res = await fetch("/lottie/foremost-delivery.json");
+      const data = await res.json();
+      setAnimationData(data);
+    };
+    load();
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-white text-[#0076CE]">
+      {animationData && (
+        <Lottie animationData={animationData} loop className="w-40 h-40 mb-4" />
+      )}
+      <p className="text-lg font-semibold">🚚 กำลังโหลดข้อมูลจาก LINE...</p>
+    </div>
+  );
+}
 
 export default function PageClient() {
   const [userExists, setUserExists] = useState(null);
@@ -27,22 +53,19 @@ export default function PageClient() {
 
         const res = await fetch(`/api/checkUser?user_LineID=${lineID}`);
         const data = await res.json();
-        setUserExists(data.exists); // ✅ true = มีข้อมูลแล้ว
+        setUserExists(data.exists);
       } catch (error) {
-        console.error("เกิดข้อผิดพลาดในการเชื่อม LINE หรือเช็คฐานข้อมูล", error);
-        setUserExists(false); // fallback ปลอดภัย
+        console.error("LINE + DB error", error);
+        setUserExists(false);
       }
     };
 
     init();
   }, []);
 
+  // ✅ โหลด Lottie ตอนกำลังโหลด
   if (userExists === null) {
-    return (
-      <p className="text-center mt-10 text-gray-600">
-        🔄 กำลังโหลดข้อมูลจาก LINE...
-      </p>
-    );
+    return <LoadingLottie />;
   }
 
   return userExists ? (

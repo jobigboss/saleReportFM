@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import Container from "../../components/Container";
+import Container from "../components/Container";
 import PageClient from "./PageClient"; // ✅ component ที่ใช้ useSearchParams
 
 export default function SaleReportsPage() {

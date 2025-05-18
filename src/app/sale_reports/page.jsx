@@ -5,13 +5,14 @@ import UserLine from "./components/UserLine";
 import SaleReport from "./components/MultistepForm";
 
 function SaleReportPage() {
-  const [userExists, setUserExists] = useState(null); // null = ยังไม่โหลด, true/false = ตรวจแล้ว
+  const [userExists, setUserExists] = useState(null); // null = loading
   const [userLineID, setUserLineID] = useState("");
 
   useEffect(() => {
-    const lineID = localStorage.getItem("user_LineID"); // 👈 หรือใช้ router query ก็ได้
+    const lineID = localStorage.getItem("user_LineID");
     if (!lineID) {
-      setUserExists(false); // ไม่พบ Line ID ในเครื่อง
+      console.warn("ไม่มี user_LineID ใน localStorage");
+      setUserExists(false);
       return;
     }
 
@@ -21,9 +22,9 @@ function SaleReportPage() {
       try {
         const res = await fetch(`/api/checkUser?user_LineID=${lineID}`);
         const data = await res.json();
-        setUserExists(data.exists); // true ถ้ามี user แล้ว
+        setUserExists(data.exists);
       } catch (err) {
-        console.error("Error checking user:", err);
+        console.error("Error calling /api/checkUser", err);
         setUserExists(false);
       }
     };
@@ -34,7 +35,7 @@ function SaleReportPage() {
   return (
     <Container>
       {userExists === null ? (
-        <p>🔄 กำลังโหลดข้อมูล...</p>
+        <p className="text-center">🔄 กำลังโหลดข้อมูล...</p>
       ) : userExists ? (
         <SaleReport user_LineID={userLineID} />
       ) : (

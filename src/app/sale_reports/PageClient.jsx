@@ -76,7 +76,7 @@ export default function PageClient() {
 
 return userExists ? (
   <>
-    <input type="hidden" value={userLineID} name="user_LineID" readOnly />
+    <input type="text" value={userLineID} name="user_LineID" readOnly />
     <SaleReport user_LineID={userLineID} />
   </>
 ) : (

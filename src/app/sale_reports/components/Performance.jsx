@@ -104,7 +104,7 @@ const TextAreaList = ({ title, values, setValues, placeholder }) => (
 );
 
 
-const PerformancePage = ({ formData, setFormData, onSubmit, onPrev, user_LineID }) => {
+const PerformancePage = ({ onPrev, formData }) => {
   const [cheerType, setCheerType] = useState("");
   const [sampleCups, setSampleCups] = useState("");
   const [billsSold, setBillsSold] = useState("");
@@ -216,7 +216,7 @@ const uploadImages = async (reportID) => {
 
     const payload = {
       report_ID: id,
-      user_LineID:user_LineID,
+      // user_LineID:user_LineID,
       store_Channel: formData.store_Channel || "",
       store_Account: formData.store_Account || "",
       store_Name: formData.store_Name || "",

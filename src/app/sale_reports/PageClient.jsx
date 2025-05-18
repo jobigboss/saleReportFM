@@ -8,27 +8,39 @@ import SaleReport from "./components/MultistepForm";
 // ✅ โหลด Lottie ที่นี่ได้
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
-function LoadingLottie({ text = "🚚 กำลังโหลดข้อมูลจาก LINE..." }) {
-  const [animationData, setAnimationData] = useState(null);
+useEffect(() => {
+  const init = async () => {
+    try {
+      if (!liff.isInitialized()) {
+        await liff.init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID });
+      }
 
-  useEffect(() => {
-    const load = async () => {
-      const res = await fetch("/lottie/foremost-delivery.json");
+      if (!liff.isLoggedIn()) {
+        liff.login({ redirectUri: window.location.href });
+        return;
+      }
+
+      const profile = await liff.getProfile();
+      const lineID = profile.userId;
+      setUserLineID(lineID);
+      localStorage.setItem("user_LineID", lineID);
+
+      const res = await fetch(`/api/checkUser?user_LineID=${lineID}`);
       const data = await res.json();
-      setAnimationData(data);
-    };
-    load();
-  }, []);
 
-  return (
-    <div className="fixed inset-0 z-50 bg-white/70 backdrop-blur-md flex flex-col items-center justify-center">
-      {animationData && (
-        <Lottie animationData={animationData} loop className="w-[130px] h-[130px] mb-4" />
-      )}
-      <p className="text-[#0076CE] text-lg font-semibold">{text}</p>
-    </div>
-  );
-}
+      // ✅ รอ 5 วินาทีก่อนแสดงหน้า
+      setTimeout(() => {
+        setUserExists(data.exists);
+      }, 5000);
+    } catch (error) {
+      console.error("LINE + DB error", error);
+      setUserExists(false);
+    }
+  };
+
+  init();
+}, []);
+
 
 
 

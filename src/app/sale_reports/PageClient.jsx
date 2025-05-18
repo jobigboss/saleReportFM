@@ -74,6 +74,6 @@ export default function PageClient() {
   return userExists ? (
     <SaleReport user_LineID={userLineID} />
   ) : (
-    <UserLine user_LineID={userLineID} onRegistered={() => setUserExists(true)} />
+    <UserLine user_LineID={userLineID}  />
   );
 }

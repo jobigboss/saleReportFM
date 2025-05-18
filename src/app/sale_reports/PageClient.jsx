@@ -22,12 +22,19 @@ function LoadingLottie() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-white text-[#0076CE]">
-      {animationData && (
-        <Lottie animationData={animationData} loop className="w-150 h-150 mb-4" />
+      {animationData ? (
+        <Lottie
+          animationData={animationData}
+          loop
+          className="w-[150px] h-[150px] mb-4"
+        />
+      ) : (
+        <p className="text-sm text-gray-400 animate-pulse">กำลังโหลด animation...</p>
       )}
     </div>
   );
 }
+
 
 export default function PageClient() {
   const [userExists, setUserExists] = useState(null);
@@ -73,7 +80,7 @@ return userExists ? (
     <SaleReport user_LineID={userLineID} />
   </>
 ) : (
-  <UserLine user_LineID={userLineID} onRegistered={() => setUserExists(false)} />
+  <UserLine user_LineID={userLineID} onRegistered={() => setUserExists(true)} />
 );
 
 }

@@ -23,9 +23,8 @@ function LoadingLottie() {
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-white text-[#0076CE]">
       {animationData && (
-        <Lottie animationData={animationData} loop className="w-40 h-40 mb-4" />
+        <Lottie animationData={animationData} loop className="w-150 h-150 mb-4" />
       )}
-      <p className="text-lg font-semibold">🚚 กำลังโหลดข้อมูลจาก LINE...</p>
     </div>
   );
 }
@@ -68,9 +67,13 @@ export default function PageClient() {
     return <LoadingLottie />;
   }
 
-  return userExists ? (
+return userExists ? (
+  <>
+    <input type="hidden" value={userLineID} name="user_LineID" readOnly />
     <SaleReport user_LineID={userLineID} />
-  ) : (
-    <UserLine user_LineID={userLineID} onRegistered={() => setUserExists(true)} />
-  );
+  </>
+) : (
+  <UserLine user_LineID={userLineID} onRegistered={() => setUserExists(true)} />
+);
+
 }

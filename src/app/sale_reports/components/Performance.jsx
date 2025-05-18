@@ -104,7 +104,7 @@ const TextAreaList = ({ title, values, setValues, placeholder }) => (
 );
 
 
-const PerformancePage = ({ onPrev, formData }) => {
+const PerformancePage = ({ formData, setFormData, onSubmit, onPrev, user_LineID }) => {
   const [cheerType, setCheerType] = useState("");
   const [sampleCups, setSampleCups] = useState("");
   const [billsSold, setBillsSold] = useState("");

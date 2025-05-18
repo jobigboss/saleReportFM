@@ -9,7 +9,7 @@ function MultistepForm() {
   const [formData, setFormData] = useState({});
 
   const handleNext = (data) => {
-    setFormData((prev) => ({ ...prev, ...data }));
+    setFormData((prev) => ({ ...prev, ...data,user_LineID  }));
     setCurrentStep((prev) => prev + 1);
   };
 
@@ -48,6 +48,7 @@ function MultistepForm() {
           setFormData={setFormData}
           onSubmit={handleSubmit}  // ✅ เปลี่ยนจาก onNext เป็น onSubmit
           onPrev={handlePrev}
+          user_LineID={user_LineID}
         />
       )}
     </>

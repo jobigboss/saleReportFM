@@ -44,8 +44,8 @@ export default function PageClient() {
           return;
         }
 
-        const profile = await liff.getProfile();
-        const lineID = profile.userId;
+        // const profile = await liff.getProfile();
+        // const lineID = profile.userId;
         setUserLineID(lineID);
         localStorage.setItem("user_LineID", lineID);
 

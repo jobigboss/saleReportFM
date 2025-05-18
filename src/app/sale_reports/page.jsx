@@ -1,13 +1,10 @@
-import React, { Suspense } from "react";
-import Container from "../components/Container";
 import PageClient from "./PageClient";
+import { Suspense } from "react";
 
-export default function SaleReportsPage() {
+export default function Page() {
   return (
-    <Container>
-      <Suspense fallback={<p className="text-center mt-10 text-gray-500">กำลังโหลด...</p>}>
-        <PageClient />
-      </Suspense>
-    </Container>
+    <Suspense fallback={<div>Loading...</div>}>
+      <PageClient />
+    </Suspense>
   );
 }

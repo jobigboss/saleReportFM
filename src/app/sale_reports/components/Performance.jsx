@@ -284,8 +284,14 @@ const uploadImages = async (reportID) => {
 
     const result = await res.json();
     if (result?.success) {
-      Swal.fire("✅ ส่งข้อมูลสำเร็จ", `รหัสรายงาน: ${id}`, "success");
-    } else {
+    Swal.fire("✅ ส่งข้อมูลสำเร็จ", `รหัสรายงาน: ${id}`, "success").then(() => {
+      if (window?.liff?.isInClient()) {
+        liff.closeWindow();
+      } else {
+        window.location.href = "/";
+      }
+    });
+  } else {
       alert("❌ บันทึกข้อมูลไม่สำเร็จ");
     }
   } catch (err) {

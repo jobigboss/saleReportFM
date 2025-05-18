@@ -1,5 +1,5 @@
-import { connectMongoDB } from "@/lib/mongodb";
-import sale_Report_User from "@/models/sale_Report_User";
+import { connectMongoDB } from "../../../../lib/mongodb";
+import sale_Report_User from "../../../../models/sale_Report_User";
 
 export async function GET(req) {
   const url = new URL(req.url);

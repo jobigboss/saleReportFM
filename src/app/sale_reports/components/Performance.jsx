@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import LoadingOverlay from './LoadingOverlay';
+import Swal from 'sweetalert2';
+
 
 const competitorBrands = [
   { name: "Thai Denmark UHT (นมไทยเดนมาร์ค)", image: "https://rshop.rweb-images.com/tMIzfteUyi9Ja664y4XXBFfIAeg=/500x500/fb1578d3395a4c6a83a2da34d99f2626" },

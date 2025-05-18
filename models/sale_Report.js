@@ -18,7 +18,8 @@ const sale_ReportSchema = new mongoose.Schema({
   report_foremostPromos: { type: [String] },
   report_competitorPromos: { type: [String] },
   report_cheerGirls: { type: [String] },
-  report_imageList:{type: [String] }
+  report_imageList:{type: [String] },
+  report_SubmitAt:{type:Date}
 
 
 });

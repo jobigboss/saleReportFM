@@ -117,7 +117,41 @@ const PerformancePage = ({ onPrev, formData }) => {
   const [imageList, setImageList] = useState([null]);
   const [quantities, setQuantities] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userData, setUserData] = useState({});
+  const [lineProfile, setLineProfile] = useState({});
 
+
+  useEffect(() => {
+  const initLiff = async () => {
+    try {
+      if (!liff.isInitialized) {
+        await liff.init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID });
+      }
+      if (!liff.isLoggedIn()) {
+        liff.login({ redirectUri: window.location.href });
+        return;
+      }
+      const profile = await liff.getProfile();
+      const idToken = liff.getIDToken();
+      const lineID = profile.userId || idToken || "";
+
+      setUserData({ user_LineID: lineID });
+      setLineProfile({
+        displayName: profile.displayName,
+        pictureUrl: profile.pictureUrl,
+      });
+    } catch (err) {
+      console.error("LIFF init error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาด",
+        text: "ไม่สามารถโหลดข้อมูลจาก LINE ได้",
+      });
+    }
+  };
+
+  initLiff();
+}, []);
 
   useEffect(() => {
     if (formData?.quantities) {
@@ -211,12 +245,25 @@ const uploadImages = async (reportID) => {
       return;
     }
 
+    const now = new Date();
+    const formattedDate = now.toLocaleString("th-TH", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
     const uploadedImageUrls = await uploadImages(id);
     const sanitizedQuantities = sanitizeKeys(quantities);
 
     const payload = {
       report_ID: id,
-      // user_LineID:user_LineID,
+      user_LineID: userData.user_LineID,
+      user_DisplayName: lineProfile.displayName,
+      user_ProfileImg: lineProfile.pictureUrl,
+      report_SubmitAt: formattedDate,
       store_Channel: formData.store_Channel || "",
       store_Account: formData.store_Account || "",
       store_Name: formData.store_Name || "",
@@ -243,7 +290,7 @@ const uploadImages = async (reportID) => {
 
     const result = await res.json();
     if (result?.success) {
-      // alert(`✅ ส่งข้อมูลสำเร็จ | รหัส: ${id}`);
+      Swal.fire("✅ ส่งข้อมูลสำเร็จ", `รหัสรายงาน: ${id}`, "success");
     } else {
       alert("❌ บันทึกข้อมูลไม่สำเร็จ");
     }
@@ -254,6 +301,7 @@ const uploadImages = async (reportID) => {
     setIsSubmitting(false);
   }
 };
+
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] flex flex-col items-center justify-center p-4 space-y-8">

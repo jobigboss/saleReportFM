@@ -22,7 +22,7 @@ function LoadingLottie({ text = "🚚 กำลังโหลดข้อมู
   return (
     <div className="fixed inset-0 z-50 bg-white/70 backdrop-blur-md flex flex-col items-center justify-center">
       {animationData && (
-        <Lottie animationData={animationData} loop className="w-[300px] h-[300px] mb-4" />
+        <Lottie animationData={animationData} loop className="w-[450px] h-[450px] mb-6" />
       )}
     </div>
   );

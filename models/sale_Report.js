@@ -21,7 +21,6 @@ const sale_ReportSchema = new mongoose.Schema({
   report_imageList:{type: [String] },
   report_SubmitAt:{type:Date}
 
-
 });
 
 const sale_Report =

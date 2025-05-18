@@ -248,14 +248,6 @@ const uploadImages = async (reportID) => {
     }
 
     const now = new Date();
-    const formattedDate = now.toLocaleString("th-TH", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
 
     const uploadedImageUrls = await uploadImages(id);
     const sanitizedQuantities = sanitizeKeys(quantities);
@@ -265,7 +257,7 @@ const uploadImages = async (reportID) => {
       user_LineID: userData.user_LineID,
       user_DisplayName: lineProfile.displayName,
       user_ProfileImg: lineProfile.pictureUrl,
-      report_SubmitAt: formattedDate,
+      report_SubmitAt: now,
       store_Channel: formData.store_Channel || "",
       store_Account: formData.store_Account || "",
       store_Name: formData.store_Name || "",

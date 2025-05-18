@@ -8,7 +8,7 @@ import SaleReport from "./components/MultistepForm";
 // ✅ โหลด Lottie ที่นี่ได้
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
-function LoadingLottie() {
+function LoadingLottie({ text = "🚚 กำลังโหลดข้อมูลจาก LINE..." }) {
   const [animationData, setAnimationData] = useState(null);
 
   useEffect(() => {
@@ -22,11 +22,14 @@ function LoadingLottie() {
 
   return (
     <div className="fixed inset-0 z-50 bg-white/70 backdrop-blur-md flex flex-col items-center justify-center">
-      {animationData && <Lottie animationData={animationData} loop className="w-130 h-130 mb-4" />}
+      {animationData && (
+        <Lottie animationData={animationData} loop className="w-[130px] h-[130px] mb-4" />
+      )}
       <p className="text-[#0076CE] text-lg font-semibold">{text}</p>
     </div>
   );
 }
+
 
 
 export default function PageClient() {

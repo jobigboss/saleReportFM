@@ -117,7 +117,7 @@ function SaleReportPage({ onNext, formData, setFormData }) {
           ))}
         </div>
 
-        {reportData.store_Channel && renderSelect("บัญชีร้านค้า", "store_Account", getFilteredOptions("store_Account"))}
+        {reportData.store_Channel && renderSelect("ร้านค้า", "store_Account", getFilteredOptions("store_Account"))}
         {reportData.store_Account && renderSelect("เขตพื้นที่ย่อย", "store_Area2", getFilteredOptions("store_Area2"))}
         {reportData.store_Area2 && renderSelect("จังหวัด", "store_Province", getFilteredOptions("store_Province"))}
         {reportData.store_Province && renderSelect("ชื่อร้านค้า", "store_Name", getFilteredOptions("store_Name"))}

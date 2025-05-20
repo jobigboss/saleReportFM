@@ -233,7 +233,8 @@ const cheerTypeLabel = {
       return uploadedUrls;
     };
 
-const buildFlexSummary = (id) => {
+const buildFlexSummary = (id, formData) => {
+
   const section = [];
 
   // 🕒 วันที่รายงาน
@@ -372,7 +373,8 @@ const buildFlexSummary = (id) => {
       body: JSON.stringify(payload)
     });
 
-    const summary = buildFlexSummary(id);
+   const summary = buildFlexSummary(id, payload);
+
 
     await fetch("/api/send-line", {
       method: "POST",

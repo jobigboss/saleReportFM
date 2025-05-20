@@ -348,60 +348,64 @@ function Sale2ProductPage({ onNext, onPrev, formData, setFormData }) {
 const renderPackInput = (productKey, volumes) => {
   return Object.entries(volumes).map(([volume, packs]) => (
     <div key={volume} className="w-full mt-3">
-      {/* แถวหัวตาราง */}
-      <div className="grid grid-cols-5 gap-2 text-sm font-semibold text-[#5C3B28] mb-1 items-center">
+      {/* แถวชื่อแพ็ค */}
+      <div className="grid grid-cols-5 gap-2 text-sm font-semibold text-[#5C3B28] mb-1">
         <div></div>
         {packs.map((pack, i) => (
           <div key={i} className="text-center">{pack}</div>
         ))}
       </div>
 
-      {/* ช่อง input จำนวน + ราคา */}
-      <div className="grid grid-cols-5 gap-2">
-        <div className="col-span-1 flex justify-center items-center text-sm font-medium text-[#5C3B28]">
+      {/* แถว input จำนวน */}
+      <div className="grid grid-cols-5 gap-2 mb-1">
+        <div className="flex justify-center items-center text-sm font-medium text-[#5C3B28]">
           {volume}
         </div>
-
         {packs.map((pack, i) => (
-          <div key={i} className="flex flex-col items-center gap-1">
-            {/* ช่องจำนวน */}
-            <input
-              type="number"
-              min="0"
-              placeholder="จำนวน"
-              value={quantities[productKey]?.[volume]?.[pack] || ""}
-              onChange={(e) =>
-                handleQuantityChange(productKey, volume, pack, e.target.value)
-              }
-              className="w-[72px] px-1 py-0.5 border border-gray-300 rounded-md text-center text-sm"
-            />
+          <input
+            key={`qty-${i}`}
+            type="number"
+            min="0"
+            placeholder=""
+            value={quantities[productKey]?.[volume]?.[pack] || ""}
+            onChange={(e) =>
+              handleQuantityChange(productKey, volume, pack, e.target.value)
+            }
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-center text-sm"
+          />
+        ))}
+      </div>
 
-            {/* ช่องราคาด้านล่าง */}
-            <input
-              type="number"
-              min="0"
-              placeholder="฿"
-              value={quantities[productKey]?.[volume]?.[`${pack}_price`] || ""}
-              onChange={(e) =>
-                setQuantities((prev) => ({
-                  ...prev,
-                  [productKey]: {
-                    ...(prev[productKey] || {}),
-                    [volume]: {
-                      ...(prev[productKey]?.[volume] || {}),
-                      [`${pack}_price`]: Number(e.target.value),
-                    },
+      {/* แถว input ราคา */}
+      <div className="grid grid-cols-5 gap-2">
+        <div></div>
+        {packs.map((pack, i) => (
+          <input
+            key={`price-${i}`}
+            type="number"
+            min="0"
+            placeholder="฿"
+            value={quantities[productKey]?.[volume]?.[`${pack}_price`] || ""}
+            onChange={(e) =>
+              setQuantities((prev) => ({
+                ...prev,
+                [productKey]: {
+                  ...(prev[productKey] || {}),
+                  [volume]: {
+                    ...(prev[productKey]?.[volume] || {}),
+                    [`${pack}_price`]: Number(e.target.value),
                   },
-                }))
-              }
-              className="w-[72px] px-1 py-0.5 border border-blue-300 rounded-md text-center text-xs text-gray-600"
-            />
-          </div>
+                },
+              }))
+            }
+            className="w-full px-2 py-1 border border-blue-300 rounded-md text-center text-xs text-gray-600"
+          />
         ))}
       </div>
     </div>
   ));
 };
+
 
 
 

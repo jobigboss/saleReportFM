@@ -17,8 +17,6 @@ const competitorBrands = [
   { name: "ดีน่า", image: "https://www.tudsinjai.com/wa-data/public/shop/products/99/02/299/images/875/875.750.JPG" }
 ];
 
-
-
 const ImageUploadBox = ({ image, onChange, onRemove }) => {
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -235,6 +233,57 @@ const uploadImages = async (reportID) => {
   return uploadedUrls;
 };
 
+const generateSummaryMessage = (id) => {
+  let message = `📋 รายงานกิจกรรม #${id}`;
+
+  // 📍 ข้อมูลร้าน
+  const storeInfo = [
+    formData.store_Channel && `- ช่องทาง: ${formData.store_Channel}`,
+    formData.store_Account && `- บัญชีร้าน: ${formData.store_Account}`,
+    formData.store_Name && `- ชื่อร้าน: ${formData.store_Name}`,
+    formData.store_Province && `- จังหวัด: ${formData.store_Province}`,
+    (formData.store_Area1 || formData.store_Area2) && `- เขต: ${formData.store_Area1 || ""} / ${formData.store_Area2 || ""}`,
+  ].filter(Boolean).join("\n");
+
+  if (storeInfo) {
+    message += `\n\n📍 ข้อมูลร้าน:\n${storeInfo}`;
+  }
+
+  // 🤝 ข้อมูลการเชียร์ขาย
+  const cheerInfo = [
+    cheerType && `- รูปแบบการเชียร์: ${cheerTypeLabel[cheerType]}`,
+    cheerType === "sell_taste" && sampleCups && `- แจกชิม: ${sampleCups} แก้ว`,
+    cheerType === "sell_taste" && billsSold && `- ขายได้: ${billsSold} บิล`,
+  ].filter(Boolean).join("\n");
+
+  if (cheerInfo) {
+    message += `\n\n🤝 ข้อมูลการเชียร์ขาย:\n${cheerInfo}`;
+  }
+
+  // 📊 Performance
+  const brandChange = Object.entries(brandCounts)
+    .filter(([_, count]) => count)
+    .map(([brand, count]) => `• ${brand}: ${count} คน`)
+    .join("\n");
+
+  const perfSections = [
+    brandChange && `- จำนวนเปลี่ยนแบรนด์:\n${brandChange}`,
+    customerQuestions.filter(q => q.trim()).length > 0 && `- คำถามจากลูกค้า: ${customerQuestions.filter(Boolean).join(", ")}`,
+    foremostPromos.filter(p => p.trim()).length > 0 && `- โปรฯ โฟร์โมสต์: ${foremostPromos.filter(Boolean).join(", ")}`,
+    competitorPromos.filter(p => p.trim()).length > 0 && `- โปรฯ คู่แข่ง: ${competitorPromos.filter(Boolean).join(", ")}`,
+    cheerGirls.filter(p => p.trim()).length > 0 && `- เชียร์เกิร์ลคู่แข่ง: ${cheerGirls.filter(Boolean).join(", ")}`,
+  ].filter(Boolean).join("\n\n");
+
+  if (perfSections) {
+    message += `\n\n📊 Performance:\n${perfSections}`;
+  }
+
+  return message;
+};
+
+
+
+
  const handleSubmit = async () => {
   if (isSubmitting) return;
   setIsSubmitting(true);
@@ -284,13 +333,19 @@ const uploadImages = async (reportID) => {
 
     const result = await res.json();
     if (result?.success) {
-    Swal.fire("✅ ส่งข้อมูลสำเร็จ", `รหัสรายงาน: ${id}`, "success").then(() => {
+    Swal.fire({
+      title: "✅ ส่งข้อมูลสำเร็จ",
+      text: generateSummaryMessage(id),
+      icon: "success",
+      customClass: { popup: "text-left" },
+    }).then(() => {
       if (window?.liff?.isInClient()) {
         liff.closeWindow();
       } else {
         window.location.href = "/";
       }
     });
+
   } else {
       alert("❌ บันทึกข้อมูลไม่สำเร็จ");
     }

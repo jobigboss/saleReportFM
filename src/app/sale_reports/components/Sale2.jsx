@@ -290,50 +290,57 @@ function Sale2ProductPage({ onNext, onPrev, formData, setFormData }) {
     <>
       {Object.entries(volumes).map(([volume, packs]) => (
         <div key={volume} className="w-full mt-3">
-          <div className="grid grid-cols-5 gap-2 text-sm font-semibold text-[#5C3B28] mb-1 items-center">
-            <div></div>
-            {packs.map((pack, i) => (
-              <div key={i} className="text-center">{pack}</div>
-            ))}
-          </div>
+          <div className="text-[#5C3B28] font-semibold mb-1">{volume}</div>
 
-          <div className="grid grid-cols-5 gap-2">
-            <div className="col-span-1 flex justify-center items-center">{volume}</div>
-            {packs.map((pack, i) => (
+          {packs.map((pack, i) => (
+            <div key={i} className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2 items-center">
+              <div className="col-span-1 text-sm text-[#5C3B28]">{pack}</div>
+
+              {/* ช่องจำนวน */}
               <input
-                key={i}
                 type="number"
                 min="0"
+                placeholder="จำนวน"
                 value={quantities[productKey]?.[volume]?.[pack] || ""}
                 onChange={(e) =>
-                  handleQuantityChange(productKey, volume, pack, e.target.value)
+                  setQuantities((prev) => ({
+                    ...prev,
+                    [productKey]: {
+                      ...(prev[productKey] || {}),
+                      [volume]: {
+                        ...(prev[productKey]?.[volume] || {}),
+                        [pack]: Number(e.target.value),
+                      },
+                    },
+                  }))
                 }
-                className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none text-center"
+                className="px-2 py-1 border border-gray-300 rounded-md text-center w-full"
               />
-            ))}
-          </div>
+
+              {/* ช่องราคา */}
+              <input
+                type="number"
+                min="0"
+                placeholder="ราคาต่อหน่วย"
+                value={quantities[productKey]?.[volume]?.[`${pack}_price`] || ""}
+                onChange={(e) =>
+                  setQuantities((prev) => ({
+                    ...prev,
+                    [productKey]: {
+                      ...(prev[productKey] || {}),
+                      [volume]: {
+                        ...(prev[productKey]?.[volume] || {}),
+                        [`${pack}_price`]: Number(e.target.value),
+                      },
+                    },
+                  }))
+                }
+                className="px-2 py-1 border border-blue-300 rounded-md text-center w-full"
+              />
+            </div>
+          ))}
         </div>
       ))}
-
-      {/* ✅ เพิ่มกล่องหมายเหตุท้ายแต่ละสินค้า */}
-      <div className="mt-3">
-        <label className="block text-sm font-medium text-[#5C3B28] mb-1">หมายเหตุเพิ่มเติม:</label>
-        <input
-          type="text"
-          value={quantities[productKey]?.note || ""}
-          onChange={(e) =>
-            setQuantities((prev) => ({
-              ...prev,
-              [productKey]: {
-                ...(prev[productKey] || {}),
-                note: e.target.value,
-              },
-            }))
-          }
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-          placeholder="ใส่หมายเหตุ เช่น ลดราคา, ของแถม ฯลฯ"
-        />
-      </div>
     </>
   );
 };

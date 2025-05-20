@@ -285,65 +285,124 @@ function Sale2ProductPage({ onNext, onPrev, formData, setFormData }) {
   //   ));
   // };
 
-  const renderPackInput = (productKey, volumes) => {
-  return (
-    <>
-      {Object.entries(volumes).map(([volume, packs]) => (
-        <div key={volume} className="w-full mt-3">
-          <div className="text-[#5C3B28] font-semibold mb-1">{volume}</div>
+//   const renderPackInput = (productKey, volumes) => {
+//   return (
+//     <>
+//       {Object.entries(volumes).map(([volume, packs]) => (
+//         <div key={volume} className="w-full mt-3">
+//           <div className="text-[#5C3B28] font-semibold mb-1">{volume}</div>
 
-          {packs.map((pack, i) => (
-            <div key={i} className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2 items-center">
-              <div className="col-span-1 text-sm text-[#5C3B28]">{pack}</div>
+//           {packs.map((pack, i) => (
+//             <div key={i} className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2 items-center">
+//               <div className="col-span-1 text-sm text-[#5C3B28]">{pack}</div>
 
-              {/* ช่องจำนวน */}
-              <input
-                type="number"
-                min="0"
-                placeholder="จำนวน"
-                value={quantities[productKey]?.[volume]?.[pack] || ""}
-                onChange={(e) =>
-                  setQuantities((prev) => ({
-                    ...prev,
-                    [productKey]: {
-                      ...(prev[productKey] || {}),
-                      [volume]: {
-                        ...(prev[productKey]?.[volume] || {}),
-                        [pack]: Number(e.target.value),
-                      },
-                    },
-                  }))
-                }
-                className="px-2 py-1 border border-gray-300 rounded-md text-center w-full"
-              />
+//               {/* ช่องจำนวน */}
+//               <input
+//                 type="number"
+//                 min="0"
+//                 placeholder="จำนวน"
+//                 value={quantities[productKey]?.[volume]?.[pack] || ""}
+//                 onChange={(e) =>
+//                   setQuantities((prev) => ({
+//                     ...prev,
+//                     [productKey]: {
+//                       ...(prev[productKey] || {}),
+//                       [volume]: {
+//                         ...(prev[productKey]?.[volume] || {}),
+//                         [pack]: Number(e.target.value),
+//                       },
+//                     },
+//                   }))
+//                 }
+//                 className="px-2 py-1 border border-gray-300 rounded-md text-center w-full"
+//               />
 
-              {/* ช่องราคา */}
-              <input
-                type="number"
-                min="0"
-                placeholder="ราคาต่อหน่วย"
-                value={quantities[productKey]?.[volume]?.[`${pack}_price`] || ""}
-                onChange={(e) =>
-                  setQuantities((prev) => ({
-                    ...prev,
-                    [productKey]: {
-                      ...(prev[productKey] || {}),
-                      [volume]: {
-                        ...(prev[productKey]?.[volume] || {}),
-                        [`${pack}_price`]: Number(e.target.value),
-                      },
-                    },
-                  }))
-                }
-                className="px-2 py-1 border border-blue-300 rounded-md text-center w-full"
-              />
-            </div>
-          ))}
+//               {/* ช่องราคา */}
+//               <input
+//                 type="number"
+//                 min="0"
+//                 placeholder="ราคาต่อหน่วย"
+//                 value={quantities[productKey]?.[volume]?.[`${pack}_price`] || ""}
+//                 onChange={(e) =>
+//                   setQuantities((prev) => ({
+//                     ...prev,
+//                     [productKey]: {
+//                       ...(prev[productKey] || {}),
+//                       [volume]: {
+//                         ...(prev[productKey]?.[volume] || {}),
+//                         [`${pack}_price`]: Number(e.target.value),
+//                       },
+//                     },
+//                   }))
+//                 }
+//                 className="px-2 py-1 border border-blue-300 rounded-md text-center w-full"
+//               />
+//             </div>
+//           ))}
+//         </div>
+//       ))}
+//     </>
+//   );
+// };
+
+const renderPackInput = (productKey, volumes) => {
+  return Object.entries(volumes).map(([volume, packs]) => (
+    <div key={volume} className="w-full mt-3">
+      {/* แถวหัวตาราง */}
+      <div className="grid grid-cols-5 gap-2 text-sm font-semibold text-[#5C3B28] mb-1 items-center">
+        <div></div>
+        {packs.map((pack, i) => (
+          <div key={i} className="text-center">{pack}</div>
+        ))}
+      </div>
+
+      {/* ช่อง input จำนวน + ราคา */}
+      <div className="grid grid-cols-5 gap-2">
+        <div className="col-span-1 flex justify-center items-center text-sm font-medium text-[#5C3B28]">
+          {volume}
         </div>
-      ))}
-    </>
-  );
+
+        {packs.map((pack, i) => (
+          <div key={i} className="flex flex-col items-center gap-1">
+            {/* ช่องจำนวน */}
+            <input
+              type="number"
+              min="0"
+              placeholder="จำนวน"
+              value={quantities[productKey]?.[volume]?.[pack] || ""}
+              onChange={(e) =>
+                handleQuantityChange(productKey, volume, pack, e.target.value)
+              }
+              className="w-[72px] px-1 py-0.5 border border-gray-300 rounded-md text-center text-sm"
+            />
+
+            {/* ช่องราคาด้านล่าง */}
+            <input
+              type="number"
+              min="0"
+              placeholder="฿"
+              value={quantities[productKey]?.[volume]?.[`${pack}_price`] || ""}
+              onChange={(e) =>
+                setQuantities((prev) => ({
+                  ...prev,
+                  [productKey]: {
+                    ...(prev[productKey] || {}),
+                    [volume]: {
+                      ...(prev[productKey]?.[volume] || {}),
+                      [`${pack}_price`]: Number(e.target.value),
+                    },
+                  },
+                }))
+              }
+              className="w-[72px] px-1 py-0.5 border border-blue-300 rounded-md text-center text-xs text-gray-600"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  ));
 };
+
 
 
   return (

@@ -203,85 +203,88 @@ const cheerTypeLabel = {
   sell_only: "เชียร์ขายอย่างเดี่ยว",
 };
 
-const uploadImages = async (reportID) => {
-  const uploadedUrls = [];
+    const uploadImages = async (reportID) => {
+      const uploadedUrls = [];
 
-  for (let i = 0; i < imageList.length; i++) {
-    const base64Image = imageList[i];
-    if (!base64Image) continue;
+      for (let i = 0; i < imageList.length; i++) {
+        const base64Image = imageList[i];
+        if (!base64Image) continue;
 
-    const base64Data = base64Image.split(",")[1];
-    const imageName = `${reportID}_${String(i + 1).padStart(2, "0")}.jpg`;
+        const base64Data = base64Image.split(",")[1];
+        const imageName = `${reportID}_${String(i + 1).padStart(2, "0")}.jpg`;
 
-    try {
-      const res = await fetch("https://script.google.com/macros/s/AKfycbzwPIr6Wnw0xx15BtU97cJR4Ab1jp87tsLpHO66t_wGMSbVHVWWDfHRIHr9YSJsQYAH/exec", {
-        method: "POST",
-        body: JSON.stringify({ base64Image: base64Data, imageName }),
-      });
-      const result = await res.json();
-      if (result.success && result.imageUrl) {
-        uploadedUrls.push(result.imageUrl);
-      } else {
-        uploadedUrls.push(null); // or ""
+        try {
+          const res = await fetch("https://script.google.com/macros/s/AKfycbzwPIr6Wnw0xx15BtU97cJR4Ab1jp87tsLpHO66t_wGMSbVHVWWDfHRIHr9YSJsQYAH/exec", {
+            method: "POST",
+            body: JSON.stringify({ base64Image: base64Data, imageName }),
+          });
+          const result = await res.json();
+          if (result.success && result.imageUrl) {
+            uploadedUrls.push(result.imageUrl);
+          } else {
+            uploadedUrls.push(null); // or ""
+          }
+        } catch (err) {
+          console.error(`❌ Upload failed for image ${i + 1}`, err);
+          uploadedUrls.push(null);
+        }
       }
-    } catch (err) {
-      console.error(`❌ Upload failed for image ${i + 1}`, err);
-      uploadedUrls.push(null);
-    }
-  }
 
-  return uploadedUrls;
-};
+      return uploadedUrls;
+    };
 
-const generateSummaryMessage = (id) => {
-  let message = `📋 รายงานกิจกรรม #${id}`;
+    const buildFlexSummary = (id) => {
+  const section = [];
 
-  // 📍 ข้อมูลร้าน
-  const storeInfo = [
-    formData.store_Channel && `- ช่องทาง: ${formData.store_Channel}`,
-    formData.store_Account && `- บัญชีร้าน: ${formData.store_Account}`,
-    formData.store_Name && `- ชื่อร้าน: ${formData.store_Name}`,
-    formData.store_Province && `- จังหวัด: ${formData.store_Province}`,
-    (formData.store_Area1 || formData.store_Area2) && `- เขต: ${formData.store_Area1 || ""} / ${formData.store_Area2 || ""}`,
-  ].filter(Boolean).join("\n");
+  // 🧭 Section 1: ข้อมูลร้าน
+  const storeText = [
+    formData.store_Channel && `ช่องทาง: ${formData.store_Channel}`,
+    formData.store_Account && `บัญชีร้าน: ${formData.store_Account}`,
+    formData.store_Name && `ชื่อร้าน: ${formData.store_Name}`,
+    formData.store_Province && `จังหวัด: ${formData.store_Province}`,
+    (formData.store_Area1 || formData.store_Area2) &&
+      `เขต: ${formData.store_Area1 || ""} / ${formData.store_Area2 || ""}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
-  if (storeInfo) {
-    message += `\n\n📍 ข้อมูลร้าน:\n${storeInfo}`;
-  }
+  if (storeText) section.push({ title: "📍 ข้อมูลร้าน", content: storeText });
 
-  // 🤝 ข้อมูลการเชียร์ขาย
-  const cheerInfo = [
-    cheerType && `- รูปแบบการเชียร์: ${cheerTypeLabel[cheerType]}`,
-    cheerType === "sell_taste" && sampleCups && `- แจกชิม: ${sampleCups} แก้ว`,
-    cheerType === "sell_taste" && billsSold && `- ขายได้: ${billsSold} บิล`,
-  ].filter(Boolean).join("\n");
+  // 🎤 Section 2: การเชียร์ขาย
+  const cheerText = [
+    cheerType && `รูปแบบ: ${cheerTypeLabel[cheerType]}`,
+    cheerType === "sell_taste" && sampleCups && `แจกชิม: ${sampleCups} แก้ว`,
+    cheerType === "sell_taste" && billsSold && `ขายได้: ${billsSold} บิล`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
-  if (cheerInfo) {
-    message += `\n\n🤝 ข้อมูลการเชียร์ขาย:\n${cheerInfo}`;
-  }
+  if (cheerText) section.push({ title: "🤝 การเชียร์ขาย", content: cheerText });
 
-  // 📊 Performance
+  // 📊 Section 3: Performance
   const brandChange = Object.entries(brandCounts)
     .filter(([_, count]) => count)
     .map(([brand, count]) => `• ${brand}: ${count} คน`)
     .join("\n");
 
-  const perfSections = [
-    brandChange && `- จำนวนเปลี่ยนแบรนด์:\n${brandChange}`,
-    customerQuestions.filter(q => q.trim()).length > 0 && `- คำถามจากลูกค้า: ${customerQuestions.filter(Boolean).join(", ")}`,
-    foremostPromos.filter(p => p.trim()).length > 0 && `- โปรฯ โฟร์โมสต์: ${foremostPromos.filter(Boolean).join(", ")}`,
-    competitorPromos.filter(p => p.trim()).length > 0 && `- โปรฯ คู่แข่ง: ${competitorPromos.filter(Boolean).join(", ")}`,
-    cheerGirls.filter(p => p.trim()).length > 0 && `- เชียร์เกิร์ลคู่แข่ง: ${cheerGirls.filter(Boolean).join(", ")}`,
-  ].filter(Boolean).join("\n\n");
+  const performanceText = [
+    brandChange && `เปลี่ยนแบรนด์:\n${brandChange}`,
+    customerQuestions.filter(q => q.trim()).length > 0 &&
+      `คำถาม: ${customerQuestions.filter(Boolean).join(", ")}`,
+    foremostPromos.filter(p => p.trim()).length > 0 &&
+      `โปรฯ โฟร์โมสต์: ${foremostPromos.filter(Boolean).join(", ")}`,
+    competitorPromos.filter(p => p.trim()).length > 0 &&
+      `โปรฯ คู่แข่ง: ${competitorPromos.filter(Boolean).join(", ")}`,
+    cheerGirls.filter(p => p.trim()).length > 0 &&
+      `เชียร์เกิร์ล: ${cheerGirls.filter(Boolean).join(", ")}`,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
-  if (perfSections) {
-    message += `\n\n📊 Performance:\n${perfSections}`;
-  }
+  if (performanceText) section.push({ title: "📊 Performance", content: performanceText });
 
-  return message;
+  return section;
 };
-
-
 
 
  const handleSubmit = async () => {
@@ -331,21 +334,28 @@ const generateSummaryMessage = (id) => {
       body: JSON.stringify(payload)
     });
 
+    const summary = buildFlexSummary(id);
+
+    await fetch("/api/send-line", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: userData.user_LineID,
+        summary,
+      }),
+    });
+
+
+
     const result = await res.json();
     if (result?.success) {
-    Swal.fire({
-      title: "✅ ส่งข้อมูลสำเร็จ",
-      text: generateSummaryMessage(id),
-      icon: "success",
-      customClass: { popup: "text-left" },
-    }).then(() => {
+    Swal.fire("✅ ส่งข้อมูลสำเร็จ", `รหัสรายงาน: ${id}`, "success").then(() => {
       if (window?.liff?.isInClient()) {
         liff.closeWindow();
       } else {
         window.location.href = "/";
       }
     });
-
   } else {
       alert("❌ บันทึกข้อมูลไม่สำเร็จ");
     }

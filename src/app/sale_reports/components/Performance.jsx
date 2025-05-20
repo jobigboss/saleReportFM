@@ -236,6 +236,19 @@ const cheerTypeLabel = {
 const buildFlexSummary = (id) => {
   const section = [];
 
+  // 🕒 วันที่รายงาน
+  const dateText = formData.report_SubmitAt
+    ? `วันที่ส่งรายงาน: ${new Date(formData.report_SubmitAt).toLocaleString("th-TH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`
+    : null;
+
+  if (dateText) section.push({ title: "🕒 เวลาส่งรายงาน", content: dateText });
+
   // 🧭 Section 1: ข้อมูลร้าน
   const storeText = [
     formData.store_Channel && `ช่องทาง: ${formData.store_Channel}`,

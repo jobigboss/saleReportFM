@@ -233,7 +233,7 @@ const cheerTypeLabel = {
       return uploadedUrls;
     };
 
-    const buildFlexSummary = (id) => {
+const buildFlexSummary = (id) => {
   const section = [];
 
   // 🧭 Section 1: ข้อมูลร้าน
@@ -261,7 +261,30 @@ const cheerTypeLabel = {
 
   if (cheerText) section.push({ title: "🤝 การเชียร์ขาย", content: cheerText });
 
-  // 📊 Section 3: Performance
+  // 🥛 Section 3: สินค้าที่เชียร์ขายได้
+  const productSummary = [];
+  Object.entries(quantities).forEach(([productKey, volumes]) => {
+    let productLine = "";
+    let total = 0;
+    Object.entries(volumes).forEach(([volume, packs]) => {
+      Object.entries(packs).forEach(([packType, qty]) => {
+        if (qty > 0) {
+          productLine += `• ${productKey} - ${volume} ${packType}: ${qty}\n`;
+          total += qty;
+        }
+      });
+    });
+    if (total > 0) productSummary.push(productLine.trim());
+  });
+
+  if (productSummary.length > 0) {
+    section.push({
+      title: "🥛 สินค้าที่เชียร์ขายได้",
+      content: productSummary.join("\n\n"),
+    });
+  }
+
+  // 📊 Section 4: Performance
   const brandChange = Object.entries(brandCounts)
     .filter(([_, count]) => count)
     .map(([brand, count]) => `• ${brand}: ${count} คน`)
@@ -285,6 +308,7 @@ const cheerTypeLabel = {
 
   return section;
 };
+
 
 
  const handleSubmit = async () => {

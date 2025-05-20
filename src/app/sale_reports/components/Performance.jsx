@@ -264,17 +264,18 @@ const buildFlexSummary = (id) => {
   // 🥛 Section 3: สินค้าที่เชียร์ขายได้
   const productSummary = [];
   Object.entries(quantities).forEach(([productKey, volumes]) => {
-    let productLine = "";
-    let total = 0;
+    const volumeLines = [];
     Object.entries(volumes).forEach(([volume, packs]) => {
-      Object.entries(packs).forEach(([packType, qty]) => {
-        if (qty > 0) {
-          productLine += `• ${productKey} - ${volume} ${packType}: ${qty}\n`;
-          total += qty;
-        }
-      });
+      const packLines = Object.entries(packs)
+        .filter(([_, qty]) => qty > 0)
+        .map(([packType, qty]) => `      ${packType} : ${qty}`);
+      if (packLines.length > 0) {
+        volumeLines.push(`  ${volume}\n${packLines.join("\n")}`);
+      }
     });
-    if (total > 0) productSummary.push(productLine.trim());
+    if (volumeLines.length > 0) {
+      productSummary.push(`${productKey}\n${volumeLines.join("\n")}`);
+    }
   });
 
   if (productSummary.length > 0) {

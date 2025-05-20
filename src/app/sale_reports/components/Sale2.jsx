@@ -81,6 +81,7 @@ const msForemostProducts = [
     label: "Foremost 100%",
     image: "https://www.foremostthailand.com/wp-content/uploads/2022/03/packshot-plain-2024-1-300x300.png",
     volumes: {
+      "165 ml.": ["แพ็ค 4", "แพ็ค 6", "ยกลัง (36)", "ยกลัง (48)"],
       "180 ml.": ["แพ็ค 4", "แพ็ค 6", "ยกลัง (36)", "ยกลัง (48)"],
       "225 ml.": [ "แพ็ค 6", "ยกลัง (36)"],
       "1000 ml.": [ "เดี่ยว", "ยกลัง"],
@@ -92,6 +93,7 @@ const msForemostProducts = [
     label: "Foremost 100% ไขมัน 0%",
     image: "https://www.foremostthailand.com/wp-content/uploads/2022/03/packshot-0fat-2024-1-300x300.png",
     volumes: {
+      "165 ml.": ["แพ็ค 4", "แพ็ค 6", "ยกลัง (36)", "ยกลัง (48)"],
       "180 ml.": ["แพ็ค 4", "แพ็ค 6", "ยกลัง (36)", "ยกลัง (48)"],
       "225 ml.": [ "แพ็ค 6", "ยกลัง (36)"],
       "1000 ml.": [ "เดี่ยว", "ยกลัง"],
@@ -102,6 +104,7 @@ const msForemostProducts = [
     label: "Foremost 100% ไขมันต่ำ",
     image: "https://www.foremostthailand.com/wp-content/uploads/2022/03/packshot-lowfat-2024-1-300x300.png",
     volumes: {
+      "165 ml.": ["แพ็ค 4", "แพ็ค 6", "ยกลัง (36)", "ยกลัง (48)"],
       "180 ml.": ["แพ็ค 4", "แพ็ค 6", "ยกลัง (36)", "ยกลัง (48)"],
       "225 ml.": [ "แพ็ค 6", "ยกลัง (36)"],
       "1000 ml.": [ "เดี่ยว", "ยกลัง"],
@@ -112,6 +115,7 @@ const msForemostProducts = [
     label: "Foremost รสช็อกโกแลต",
     image: "https://www.foremostthailand.com/wp-content/uploads/2022/03/Chocolate180.png",
     volumes: {
+      "165 ml.": ["แพ็ค 4", "ยกลัง"],
       "180 ml.": ["แพ็ค 4", "ยกลัง"],
       "225 ml.": [ "แพ็ค 6", "ยกลัง"],
     },
@@ -121,6 +125,7 @@ const msForemostProducts = [
     label: "Foremost รสช็อกโกแลต พร่องไขมัน",
     image: "https://www.foremostthailand.com/wp-content/uploads/2022/03/LowFat_Chocolate225-600x600.png",
     volumes: {
+      "165 ml.": ["แพ็ค 4", "ยกลัง"],
       "180 ml.": ["แพ็ค 4", "ยกลัง"],
       "225 ml.": [ "แพ็ค 6", "ยกลัง"],
     },
@@ -130,6 +135,7 @@ const msForemostProducts = [
     label: "Foremost รสสตอเบอรี่",
     image: "https://www.foremostthailand.com/wp-content/uploads/2022/03/Strawberry225-600x600.png",
     volumes: {
+      "165 ml.": ["แพ็ค 4", "ยกลัง"],
       "180 ml.": ["แพ็ค 4", "ยกลัง"],
       "225 ml.": [ "แพ็ค 6", "ยกลัง"],
     },
@@ -139,6 +145,7 @@ const msForemostProducts = [
     label: "Foremost รสหวาน",
     image: "https://www.foremostthailand.com/wp-content/uploads/2022/03/Sweet180.png",
     volumes: {
+      "165 ml.": ["แพ็ค 4", "ยกลัง"],
       "180 ml.": ["แพ็ค 4", "ยกลัง"],
       "225 ml.": [ "แพ็ค 6", "ยกลัง"],
     },
@@ -148,12 +155,11 @@ const msForemostProducts = [
     label: "Foremost รสกล้วยหอม",
     image: "https://www.foremostthailand.com/wp-content/uploads/2022/07/Banana225.png",
     volumes: {
+      "165 ml.": ["แพ็ค 4", "ยกลัง"],
       "180 ml.": ["แพ็ค 4", "ยกลัง"],
       "225 ml.": [ "แพ็ค 6", "ยกลัง"],
     },
   },
-
-
 
 ];
 
@@ -252,32 +258,86 @@ function Sale2ProductPage({ onNext, onPrev, formData, setFormData }) {
   }, [quantities]);
 
 
-  const renderPackInput = (productKey, volumes) => {
-    return Object.entries(volumes).map(([volume, packs]) => (
-      <div key={volume} className="w-full mt-3">
-        <div className="grid grid-cols-5 gap-2 text-sm font-semibold text-[#5C3B28] mb-1 items-center">
-          <div></div>
-          {packs.map((pack, i) => (
-            <div key={i} className="text-center">{pack}</div>
-          ))}
-        </div>
+  // const renderPackInput = (productKey, volumes) => {
+  //   return Object.entries(volumes).map(([volume, packs]) => (
+  //     <div key={volume} className="w-full mt-3">
+  //       <div className="grid grid-cols-5 gap-2 text-sm font-semibold text-[#5C3B28] mb-1 items-center">
+  //         <div></div>
+  //         {packs.map((pack, i) => (
+  //           <div key={i} className="text-center">{pack}</div>
+  //         ))}
+  //       </div>
 
-        <div className="grid grid-cols-5 gap-2">
-          <div className="col-span-1 flex justify-center items-center">{volume}</div>
-          {packs.map((pack, i) => (
-            <input
-              key={i}
-              type="number"
-              min="0"
-              value={quantities[productKey]?.[volume]?.[pack] || ""}
-              onChange={(e) => handleQuantityChange(productKey, volume, pack, e.target.value)}
-              className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none text-center"
-            />
-          ))}
+  //       <div className="grid grid-cols-5 gap-2">
+  //         <div className="col-span-1 flex justify-center items-center">{volume}</div>
+  //         {packs.map((pack, i) => (
+  //           <input
+  //             key={i}
+  //             type="number"
+  //             min="0"
+  //             value={quantities[productKey]?.[volume]?.[pack] || ""}
+  //             onChange={(e) => handleQuantityChange(productKey, volume, pack, e.target.value)}
+  //             className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none text-center"
+  //           />
+  //         ))}
+  //       </div>
+  //     </div>
+  //   ));
+  // };
+
+  const renderPackInput = (productKey, volumes) => {
+  return (
+    <>
+      {Object.entries(volumes).map(([volume, packs]) => (
+        <div key={volume} className="w-full mt-3">
+          <div className="grid grid-cols-5 gap-2 text-sm font-semibold text-[#5C3B28] mb-1 items-center">
+            <div></div>
+            {packs.map((pack, i) => (
+              <div key={i} className="text-center">{pack}</div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-5 gap-2">
+            <div className="col-span-1 flex justify-center items-center">{volume}</div>
+            {packs.map((pack, i) => (
+              <input
+                key={i}
+                type="number"
+                min="0"
+                value={quantities[productKey]?.[volume]?.[pack] || ""}
+                onChange={(e) =>
+                  handleQuantityChange(productKey, volume, pack, e.target.value)
+                }
+                className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none text-center"
+              />
+            ))}
+          </div>
         </div>
+      ))}
+
+      {/* ✅ เพิ่มกล่องหมายเหตุท้ายแต่ละสินค้า */}
+      <div className="mt-3">
+        <label className="block text-sm font-medium text-[#5C3B28] mb-1">หมายเหตุเพิ่มเติม:</label>
+        <input
+          type="text"
+          value={quantities[productKey]?.note || ""}
+          onChange={(e) =>
+            setQuantities((prev) => ({
+              ...prev,
+              [productKey]: {
+                ...(prev[productKey] || {}),
+                note: e.target.value,
+              },
+            }))
+          }
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+          placeholder="ใส่หมายเหตุ เช่น ลดราคา, ของแถม ฯลฯ"
+        />
       </div>
-    ));
-  };
+    </>
+  );
+};
+
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-md">

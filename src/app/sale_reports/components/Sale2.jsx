@@ -426,7 +426,7 @@ const renderPackInput = (productKey, volumes) => {
             }
             className="w-full px-2 py-1 border border-green-300 rounded-md text-center text-xs text-gray-700"
           >
-            <option value="">เลือกสถานะ</option>
+            <option value="">S</option>
             <option value="มีขาย">มีขาย</option>
             <option value="สินค้าหมด">สินค้าหมด</option>
             <option value="ขาย">ขาย</option>

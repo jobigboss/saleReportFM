@@ -387,17 +387,20 @@ const buildFlexSummary = (id, formData) => {
       store_Area2: formData.store_Area2,
     };
 
-    await fetch("https://script.google.com/macros/s/AKfycbwl_zqQ5qwu07bvYy2DbkUg0plxu7UFV3A6bBtCFif5bbdqK2DGzWcNOd-JBhiOOER11g/exec", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(minimalPayload),
-    })
-      .then(res => res.json())
-      .then(data => console.log("✅ ส่งสำเร็จ:", data))
-      .catch(err => {
-        console.error("❌ ส่งไม่สำเร็จ:", err);
-        alert("ส่งข้อมูลไป Google Sheets ไม่สำเร็จ");
-      });
+ fetch("https://script.google.com/macros/s/AKfycbwl_zqQ5qwu07bvYy2DbkUg0plxu7UFV3A6bBtCFif5bbdqK2DGzWcNOd-JBhiOOER11g/exec", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    report_ID: "TEST123",
+    user_LineID: "dummy123",
+    report_SubmitAt: new Date(),
+    store_Name: "Test Store"
+  })
+})
+.then(res => res.json())
+.then(console.log)
+.catch(console.error);
+
 
 
    const summary = buildFlexSummary(id, payload);

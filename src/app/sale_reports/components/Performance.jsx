@@ -2,6 +2,40 @@
 import React, { useState, useEffect } from "react";
 import LoadingOverlay from './LoadingOverlay';
 import Swal from 'sweetalert2';
+import {kisForemostProducts, msForemostProducts,  dkyForemostProducts,  tfdForemostProducts,} from "./Sale2"; 
+
+const allProducts = [
+  ...kisForemostProducts,
+  ...msForemostProducts,
+  ...dkyForemostProducts,
+  ...tfdForemostProducts,
+];
+
+function flattenQuantities(quantities) {
+  const result = {};
+
+  allProducts.forEach((product) => {
+    const productKey = product.key;
+
+    Object.entries(product.volumes).forEach(([volume, packTypes]) => {
+      const cleanVolume = volume.replace(/\s/g, "").replace("ml.", "ml");
+
+      packTypes.forEach((pack) => {
+        const cleanPack = pack.replace(/[()]/g, "").replace(/\s/g, "");
+        const quantityKey = `${productKey}_${cleanVolume}_${cleanPack}`;
+        const priceKey = `${quantityKey}_price`;
+
+        const val = quantities?.[productKey]?.[volume]?.[pack] ?? 0;
+        const price = quantities?.[productKey]?.[volume]?.[`${pack}_price`] ?? 0;
+
+        result[quantityKey] = val;
+        result[priceKey] = price;
+      });
+    });
+  });
+
+  return result;
+}
 
 
 const competitorBrands = [
@@ -383,6 +417,7 @@ const buildFlexSummary = (id, formData) => {
       store_Name: formData.store_Name,
       store_Province: formData.store_Province,
       store_Area2: formData.store_Area2,
+      quantities: flattenQuantities(formData.quantities),
     };
                 // 2. ถัดมา → ส่งไป Google Sheet
       await fetch("/api/sent-google", {

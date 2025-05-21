@@ -15,7 +15,7 @@ export async function POST(req) {
     }
 
   try {
-    const googleScriptURL = "https://script.google.com/macros/s/AKfycbwl_zqQ5qwu07bvYy2DbkUg0plxu7UFV3A6bBtCFif5bbdqK2DGzWcNOd-JBhiOOER11g/exec";
+    const googleScriptURL = "https://script.google.com/macros/s/AKfycbzTXUIKsNzUc7UDmRyrT3v08gbX1roc_pEIuCDEgDJbOE1_oXs5ZpblfXSFYMP1rrocfQ/exec";
 
     const res = await fetch(googleScriptURL, {
       method: "POST",

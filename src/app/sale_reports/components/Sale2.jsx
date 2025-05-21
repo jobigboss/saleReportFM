@@ -429,7 +429,7 @@ const renderPackInput = (productKey, volumes) => {
             <option value="">S</option>
             <option value="มีขาย">มีขาย</option>
             <option value="สินค้าหมด">สินค้าหมด</option>
-            <option value="ขาย">ขาย</option>
+            <option value="ไม่ขาย">ไม่ขาย</option>
           </select>
         ))}
       </div>

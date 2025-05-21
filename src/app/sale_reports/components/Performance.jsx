@@ -391,7 +391,14 @@ const buildFlexSummary = (id, formData) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(minimalPayload),
-    });
+    })
+      .then(res => res.json())
+      .then(data => console.log("✅ ส่งสำเร็จ:", data))
+      .catch(err => {
+        console.error("❌ ส่งไม่สำเร็จ:", err);
+        alert("ส่งข้อมูลไป Google Sheets ไม่สำเร็จ");
+      });
+
 
    const summary = buildFlexSummary(id, payload);
 

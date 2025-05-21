@@ -387,21 +387,11 @@ const buildFlexSummary = (id, formData) => {
       store_Area2: formData.store_Area2,
     };
 
- fetch("https://script.google.com/macros/s/AKfycbwl_zqQ5qwu07bvYy2DbkUg0plxu7UFV3A6bBtCFif5bbdqK2DGzWcNOd-JBhiOOER11g/exec", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    report_ID: "TEST123",
-    user_LineID: "dummy123",
-    report_SubmitAt: new Date(),
-    store_Name: "Test Store"
-  })
-})
-.then(res => res.json())
-.then(console.log)
-.catch(console.error);
-
-
+    await fetch("https://script.google.com/macros/s/AKfycbwl_zqQ5qwu07bvYy2DbkUg0plxu7UFV3A6bBtCFif5bbdqK2DGzWcNOd-JBhiOOER11g/exec", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(minimalPayload),
+    });
 
    const summary = buildFlexSummary(id, payload);
 

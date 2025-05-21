@@ -4,7 +4,6 @@ import LoadingOverlay from './LoadingOverlay';
 import Swal from 'sweetalert2';
 
 
-
 const competitorBrands = [
   { name: "Thai Denmark UHT (นมไทยเดนมาร์ค)", image: "https://rshop.rweb-images.com/tMIzfteUyi9Ja664y4XXBFfIAeg=/500x500/fb1578d3395a4c6a83a2da34d99f2626" },
   { name: "Hi-Q", image: "https://danonecareplus.com/uploads/images/products/1F71C4E058EFA2294AB053ADCB35AE00.png" },
@@ -374,22 +373,17 @@ const buildFlexSummary = (id, formData) => {
       body: JSON.stringify(payload)
     });
 
-const productKeys = Object.keys(data.quantities || {});
-const productValues = productKeys.map(key => data.quantities[key]);
-
-// รวมกับข้อมูลทั่วไป
-const row = [
-  data.user_LineID || "",
-  data.user_DisplayName || "",
-  Utilities.formatDate(new Date(data.report_SubmitAt || new Date()), "Asia/Bangkok", "dd/MM/yyyy HH:mm:ss"),
-  data.report_ID || "",
-  data.store_Channel || "",
-  data.store_Account || "",
-  data.store_Name || "",
-  data.store_Province || "",
-  data.store_Area2 || "",
-  ...productValues // 🟢 ต่อค่าผลิตภัณฑ์ต่อท้ายแนวนอน
-];
+    const minimalPayload = {
+      user_LineID: userData.user_LineID,
+      user_DisplayName: lineProfile.displayName,
+      report_SubmitAt: now,
+      report_ID: id,
+      store_Channel: formData.store_Channel,
+      store_Account: formData.store_Account,
+      store_Name: formData.store_Name,
+      store_Province: formData.store_Province,
+      store_Area2: formData.store_Area2,
+    };
                 // 2. ถัดมา → ส่งไป Google Sheet
       await fetch("/api/sent-google", {
         method: "POST",

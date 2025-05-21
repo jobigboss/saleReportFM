@@ -153,7 +153,6 @@ const PerformancePage = ({ onPrev, formData }) => {
   initLiff();
 }, []);
 
-
   useEffect(() => {
     if (formData?.quantities) {
       setQuantities(formData.quantities);
@@ -374,13 +373,8 @@ const buildFlexSummary = (id, formData) => {
       body: JSON.stringify(payload)
     });
 
-    await fetch("https://script.google.com/macros/s/AKfycbwl_zqQ5qwu07bvYy2DbkUg0plxu7UFV3A6bBtCFif5bbdqK2DGzWcNOd-JBhiOOER11g/exec", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+   const summary = buildFlexSummary(id, payload);
 
-    const summary = buildFlexSummary(id, payload);
 
     await fetch("/api/send-line", {
       method: "POST",
@@ -391,16 +385,18 @@ const buildFlexSummary = (id, formData) => {
       }),
     });
 
+
+
     const result = await res.json();
     if (result?.success) {
-      Swal.fire("✅ ส่งข้อมูลสำเร็จ", `รหัสรายงาน: ${id}`, "success").then(() => {
-        if (window?.liff?.isInClient()) {
-          liff.closeWindow();
-        } else {
-          window.location.href = "/";
-        }
-      });
-    } else {
+    Swal.fire("✅ ส่งข้อมูลสำเร็จ", `รหัสรายงาน: ${id}`, "success").then(() => {
+      if (window?.liff?.isInClient()) {
+        liff.closeWindow();
+      } else {
+        window.location.href = "/";
+      }
+    });
+  } else {
       alert("❌ บันทึกข้อมูลไม่สำเร็จ");
     }
   } catch (err) {

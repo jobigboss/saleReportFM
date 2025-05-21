@@ -325,6 +325,27 @@ const buildFlexSummary = (id, formData) => {
 };
 
 
+function flattenQuantities(quantities) {
+  const result = {};
+
+  Object.entries(quantities).forEach(([productKey, volumes]) => {
+    Object.entries(volumes).forEach(([volume, packs]) => {
+      const cleanVolume = volume.replace(/\s+/g, "").replace("ml.", "ml").replace("ml", "ml");
+      Object.entries(packs).forEach(([packType, val]) => {
+        const isPrice = packType.endsWith("_price");
+        const cleanPack = packType.replace(/\s+/g, "").replace(/[()]/g, "").replace("_price", "");
+        const key = `${productKey}_${cleanVolume}_${cleanPack}${isPrice ? "_price" : ""}`;
+        result[key] = val ?? 0;
+      });
+    });
+  });
+
+  return result;
+}
+
+
+
+
 
  const handleSubmit = async () => {
   if (isSubmitting) return;
@@ -373,6 +394,8 @@ const buildFlexSummary = (id, formData) => {
       body: JSON.stringify(payload)
     });
 
+    const flattened = flattenQuantities(quantities);
+
     const minimalPayload = {
       user_LineID: userData.user_LineID,
       user_DisplayName: lineProfile.displayName,
@@ -383,6 +406,7 @@ const buildFlexSummary = (id, formData) => {
       store_Name: formData.store_Name,
       store_Province: formData.store_Province,
       store_Area2: formData.store_Area2,
+         ...flattenQuantities(quantities),
     };
                 // 2. ถัดมา → ส่งไป Google Sheet
       await fetch("/api/sent-google", {

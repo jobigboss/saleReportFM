@@ -460,7 +460,7 @@ function flattenQuantities(quantities) {
         </h2>
 
         {/* รูปแบบการเชียร์ */}
-        <div className="space-y-2">
+        <div className="space-y-2" >
           <h3 className="text-lg font-semibold text-[#2E2E2E]">เลือกรูปแบบการเชียร์</h3>
           <div className="grid grid-cols-2 gap-3">
             {[
@@ -540,7 +540,7 @@ function flattenQuantities(quantities) {
             <TextAreaList title="🏷️ โปรโมชั่นของคู่แข่งที่มีที่ร้านค้า (ส่วนลด / ของแถม)" values={competitorPromos} setValues={setCompetitorPromos} placeholder="โปรโมชั่นคู่แข่ง" />
             <TextAreaList title="🏷️ รายการเชียร์เกิร์ลของคู่แข่ง ลงงานกี่วัน เป้าหมาย เน้นขายนมอะไร" values={cheerGirls} setValues={setCheerGirls} placeholder="เน้นขายนมอะไร" />
 
-            <div>
+            <div hidden>
               <h2 className="text-2xl font-semibold text-center text-[#2E2E2E] mb-3">แนบรูปภาพกิจกรรม</h2>
               <div className="flex flex-wrap justify-center gap-4">
                 {imageList.map((image, index) => (

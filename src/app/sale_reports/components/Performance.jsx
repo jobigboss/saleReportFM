@@ -374,20 +374,16 @@ const buildFlexSummary = (id, formData) => {
     });
 
     const minimalPayload = {
-      report_ID: id,
       user_LineID: userData.user_LineID,
       user_DisplayName: lineProfile.displayName,
-      user_ProfileImg: lineProfile.pictureUrl,
       report_SubmitAt: now,
+      report_ID: id,
       store_Channel: formData.store_Channel,
       store_Account: formData.store_Account,
       store_Name: formData.store_Name,
       store_Province: formData.store_Province,
-      store_Area1: formData.store_Area1,
       store_Area2: formData.store_Area2,
     };
-
-
                 // 2. ถัดมา → ส่งไป Google Sheet
       await fetch("/api/sent-google", {
         method: "POST",

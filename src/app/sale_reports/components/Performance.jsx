@@ -387,11 +387,15 @@ const buildFlexSummary = (id, formData) => {
       store_Area2: formData.store_Area2,
     };
 
-    await fetch("https://script.google.com/macros/s/AKfycbwl_zqQ5qwu07bvYy2DbkUg0plxu7UFV3A6bBtCFif5bbdqK2DGzWcNOd-JBhiOOER11g/exec", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(minimalPayload),
-    });
+
+                // 2. ถัดมา → ส่งไป Google Sheet
+      await fetch("/api/sent-google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(minimalPayload)
+      });
+
+
 
    const summary = buildFlexSummary(id, payload);
 

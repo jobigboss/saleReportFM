@@ -2,9 +2,14 @@
 import React, { useState, useEffect } from "react";
 import LoadingOverlay from './LoadingOverlay';
 import Swal from 'sweetalert2';
-import {kisForemostProducts, msForemostProducts,  dkyForemostProducts,  tfdForemostProducts,} from "./Sale2"; 
+import {kisForemostProducts, msForemostProducts,  dkyForemostProducts,  tfdForemostProducts,} from "./productData"; 
 
-
+const allProducts = [
+  ...kisForemostProducts,
+  ...msForemostProducts,
+  ...dkyForemostProducts,
+  ...tfdForemostProducts,
+];
 
 function flattenQuantities(quantities) {
   const result = {};
@@ -31,13 +36,6 @@ function flattenQuantities(quantities) {
 
   return result;
 }
-
-const allProducts = [
-  ...kisForemostProducts,
-  ...msForemostProducts,
-  ...dkyForemostProducts,
-  ...tfdForemostProducts,
-];
 
 
 const competitorBrands = [

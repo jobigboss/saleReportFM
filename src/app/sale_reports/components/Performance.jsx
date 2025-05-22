@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 
 
 const competitorBrands = [
-  { name: "Thai Denmark UHT (นมไทยเดนมาร์ค)", image: "https://rshop.rweb-images.com/tMIzfteUyi9Ja664y4XXBFfIAeg=/500x500/fb1578d3395a4c6a83a2da34d99f2626" },
+  { name: "Thai Denmark UHT", image: "https://rshop.rweb-images.com/tMIzfteUyi9Ja664y4XXBFfIAeg=/500x500/fb1578d3395a4c6a83a2da34d99f2626" },
   { name: "Hi-Q", image: "https://danonecareplus.com/uploads/images/products/1F71C4E058EFA2294AB053ADCB35AE00.png" },
   { name: "S 26", image: "https://www.s-momclub.com/sites/default/files/2023-08/superma-s26uht.png" },
   { name: "Milo", image: "https://www.milo.co.th/sites/default/files/2024-05/Thumb-Product-UHT-Regular.jpg" },

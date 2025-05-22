@@ -407,9 +407,24 @@ function flattenQuantities(quantities) {
       store_Province: formData.store_Province,
       store_Area2: formData.store_Area2,
          ...flattenQuantities(quantities),
+      report_cheerType: cheerTypeLabel[cheerType] || "",
+      report_sampleCups: sampleCups,
+      report_billsSold: billsSold,
+      report_ChangeBrands: brandCounts,
+      report_customerQuestions: customerQuestions,
+      report_foremostPromos: foremostPromos,
+      report_competitorPromos: competitorPromos,
+      report_cheerGirls: cheerGirls,
+         
     };
                 // 2. ถัดมา → ส่งไป Google Sheet
       await fetch("/api/sent-google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(minimalPayload)
+      });
+
+      await fetch("/api/sent-google-per", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(minimalPayload)

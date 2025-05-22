@@ -10,11 +10,11 @@ const competitorBrands = [
   { name: "S 26", image: "https://www.s-momclub.com/sites/default/files/2023-08/superma-s26uht.png" },
   { name: "Milo", image: "https://www.milo.co.th/sites/default/files/2024-05/Thumb-Product-UHT-Regular.jpg" },
   { name: "Ovaltine", image: "https://www.ovaltine.co.th/system/files/2024-08/2024-Malt-Chocolate-Flavoured-UHT.png" },
-  { name: "นมหมี", image: "https://www.nestle.co.th/sites/g/files/pydnoa486/files/AW_NST049487_BBU_3D_State3_HNY_P2_NewDesign_FOP_148D1V2_Revise_F%203.jpg" },
-  { name: "ดูโกร", image: "https://smartmedia.digital4danone.com/is/image/danonecs/single_brick_packshot-1?ts=1699590579469&dpr=off" },
-  { name: "แอนลีน", image: "https://down-th.img.susercontent.com/file/e7d54996ce6a95248283632f06effa26@resize_w450_nl.webp" },
+  { name: "Bear Brand", image: "https://www.nestle.co.th/sites/g/files/pydnoa486/files/AW_NST049487_BBU_3D_State3_HNY_P2_NewDesign_FOP_148D1V2_Revise_F%203.jpg" },
+  { name: "Dugro", image: "https://smartmedia.digital4danone.com/is/image/danonecs/single_brick_packshot-1?ts=1699590579469&dpr=off" },
+  { name: "Anlene", image: "https://down-th.img.susercontent.com/file/e7d54996ce6a95248283632f06effa26@resize_w450_nl.webp" },
   { name: "ivy", image: "https://www.ip-one.com/frontend/img/thumb/product-ivy.png" },
-  { name: "ดีน่า", image: "https://www.tudsinjai.com/wa-data/public/shop/products/99/02/299/images/875/875.750.JPG" }
+  { name: "Dna", image: "https://www.tudsinjai.com/wa-data/public/shop/products/99/02/299/images/875/875.750.JPG" }
 ];
 
 const ImageUploadBox = ({ image, onChange, onRemove }) => {

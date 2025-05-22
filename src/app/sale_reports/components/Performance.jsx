@@ -30,7 +30,6 @@ const ImageUploadBox = ({ image, onChange, onRemove }) => {
     }
   };
 
-
   return (
     <div className="relative w-40 h-40">
       {image ? (
@@ -424,7 +423,11 @@ function flattenChangeBrands(report_ChangeBrands) {
       report_cheerType: cheerTypeLabel[cheerType] || "",
       report_sampleCups: sampleCups,
       report_billsSold: billsSold,
-      ...performance, 
+      ...performance,
+      report_customerQuestions: customerQuestions,
+      report_foremostPromos: foremostPromos,
+      report_competitorPromos: competitorPromos,
+      report_cheerGirls: cheerGirls,
     };
 
     

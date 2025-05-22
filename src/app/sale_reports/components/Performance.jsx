@@ -343,9 +343,14 @@ function flattenQuantities(quantities) {
   return result;
 }
 
-
-
-
+function flattenChangeBrands(report_ChangeBrands) {
+  const result = {};
+  Object.entries(report_ChangeBrands).forEach(([key, value]) => {
+    const safeKey = `changeBrand_${key.replace(/\s+/g, "_").replace(/[^\w]/g, "")}`;
+    result[safeKey] = value;
+  });
+  return result;
+}
 
  const handleSubmit = async () => {
   if (isSubmitting) return;
@@ -417,6 +422,20 @@ function flattenQuantities(quantities) {
       report_cheerGirls: cheerGirls,
          
     };
+
+    const perPayload = {
+      user_LineID: userData.user_LineID,
+      user_DisplayName: lineProfile.displayName,
+      report_SubmitAt: now,
+      report_ID: id,
+      report_cheerType: cheerTypeLabel[cheerType] || "",
+      report_sampleCups: sampleCups,
+      report_billsSold: billsSold,
+      report_ChangeBrands: brandCounts,
+      ...flattenChangeBrands(report_ChangeBrands), 
+    };
+
+    
                 // 2. ถัดมา → ส่งไป Google Sheet
       await fetch("/api/sent-google", {
         method: "POST",
@@ -427,7 +446,7 @@ function flattenQuantities(quantities) {
       await fetch("/api/sent-google-per", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(minimalPayload)
+        body: JSON.stringify(perPayload)
       });
 
 

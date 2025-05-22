@@ -411,17 +411,10 @@ function flattenChangeBrands(report_ChangeBrands) {
       store_Name: formData.store_Name,
       store_Province: formData.store_Province,
       store_Area2: formData.store_Area2,
-         ...flattenQuantities(quantities),
-      report_cheerType: cheerTypeLabel[cheerType] || "",
-      report_sampleCups: sampleCups,
-      report_billsSold: billsSold,
-      report_ChangeBrands: brandCounts,
-      report_customerQuestions: customerQuestions,
-      report_foremostPromos: foremostPromos,
-      report_competitorPromos: competitorPromos,
-      report_cheerGirls: cheerGirls,
-         
+         ...flattenQuantities(quantities),         
     };
+    
+    const performance = flattenChangeBrands(brandCounts);
 
     const perPayload = {
       user_LineID: userData.user_LineID,
@@ -431,8 +424,7 @@ function flattenChangeBrands(report_ChangeBrands) {
       report_cheerType: cheerTypeLabel[cheerType] || "",
       report_sampleCups: sampleCups,
       report_billsSold: billsSold,
-      report_ChangeBrands: brandCounts,
-      ...flattenChangeBrands(report_ChangeBrands), 
+      ...performance, 
     };
 
     

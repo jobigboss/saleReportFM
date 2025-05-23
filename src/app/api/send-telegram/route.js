@@ -51,33 +51,31 @@
 import { connectMongDB } from "../../../../lib/mongodb"; // 🧠 เชื่อม MongoDB
 import sale_Report_User from "../../../../models/sale_Report_User"; // 🔁 Model ที่คุณแนบมา
 
-export async function POST(req) {
-  const body = await req.json();
-  console.log("📥 [TELEGRAM] Body:", body);
+import { connectMongDB } from "../../../../lib/mongodb";
+import sale_Report_User from "../../../../models/sale_Report_User";
 
+export async function POST(req) {
   try {
+    const body = await req.json();
+
     await connectMongDB();
 
     const user = await sale_Report_User.findOne({ user_LineID: body.user_LineID });
-    if (!user) {
-      console.warn("❌ ไม่พบผู้ใช้ในฐานข้อมูล:", body.user_LineID);
-      return new Response(JSON.stringify({ success: false, message: "User not found" }), { status: 404 });
-    }
-
-    const message = `
-    📢 รายงานใหม่จาก LIFF
-
-    👤 ผู้ส่ง: ${user.user_Name}
-    📞 โทร: ${user.user_Phone}
-    🏪 ร้าน: ${body.store_Name}
-    📦 ช่องทาง: ${body.store_Channel}
-    📍 จังหวัด: ${body.store_Province}
-    📍 เขต: ${body.store_Area2}
-    💼 บัญชี: ${body.store_Account}
-    `.trim();
 
     const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+    const message = `
+📢 รายงานใหม่จาก LIFF
+
+👤 ผู้ส่ง: ${user?.user_Name || "ไม่พบ"}
+📞 โทร: ${user?.user_Phone || "-"}
+🏪 ร้าน: ${body.store_Name}
+📦 ช่องทาง: ${body.store_Channel}
+📍 จังหวัด: ${body.store_Province}
+📍 เขต: ${body.store_Area2}
+💼 บัญชี: ${body.store_Account}
+`.trim();
 
     const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
 
@@ -87,7 +85,7 @@ export async function POST(req) {
       body: JSON.stringify({
         chat_id: TELEGRAM_CHAT_ID,
         text: message,
-        parse_mode: "Markdown",
+        parse_mode: "Markdown"
       }),
     });
 

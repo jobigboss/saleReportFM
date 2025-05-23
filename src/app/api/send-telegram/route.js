@@ -1,7 +1,7 @@
 //api/send-telegram/route.js
-
 export async function POST(req) {
   const body = await req.json();
+  console.log("📥 [TELEGRAM] Body:", body);
 
   const message = `
 📢 รายงานใหม่จาก LIFF
@@ -17,6 +17,9 @@ export async function POST(req) {
   const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
   const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
+  console.log("🔑 Token:", TELEGRAM_TOKEN ? "[OK]" : "[MISSING]");
+  console.log("🆔 Chat ID:", TELEGRAM_CHAT_ID);
+
   const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
 
   const res = await fetch(telegramUrl, {
@@ -30,6 +33,7 @@ export async function POST(req) {
   });
 
   const data = await res.json();
+  console.log("📬 [TELEGRAM] Response:", data);
 
   return new Response(JSON.stringify({ success: data.ok }), {
     status: data.ok ? 200 : 500,

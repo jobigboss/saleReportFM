@@ -471,6 +471,7 @@ function flattenChangeBrands(report_ChangeBrands) {
     });
 
 
+
     const result = await res.json();
     if (result?.success) {
     Swal.fire("✅ ส่งข้อมูลสำเร็จ", `รหัสรายงาน: ${id}`, "success").then(() => {

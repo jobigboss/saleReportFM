@@ -378,6 +378,13 @@ function flattenChangeBrands(report_ChangeBrands) {
   if (isSubmitting) return;
   setIsSubmitting(true);
 
+   // ✅ ตรวจสอบว่า user_LineID มีค่าหรือยัง
+  if (!userData.user_LineID) {
+    alert("กำลังโหลดข้อมูลผู้ใช้ กรุณารอสักครู่...");
+    setIsSubmitting(false);
+    return;
+  }
+
   try {
     const idRes = await fetch("/api/gen-id");
     const { id } = await idRes.json();

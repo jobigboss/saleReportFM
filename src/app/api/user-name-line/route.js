@@ -7,6 +7,13 @@ export async function POST(req) {
 
   try {
     await connectMongDB();
+
+    if (!body?.user_LineID) {
+      return new Response(JSON.stringify({ success: false, message: "Missing user_LineID" }), {
+        status: 400,
+      });
+    }
+
     const user = await sale_Report_User.findOne({ user_LineID: body.user_LineID });
 
     if (!user) {

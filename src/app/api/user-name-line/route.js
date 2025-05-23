@@ -7,7 +7,10 @@ export async function POST(req) {
 
   try {
     await connectMongDB();
-    const user = await sale_Report_User.findOne({ user_LineID: body.user_LineID });
+    // const user = await sale_Report_User.findOne({ user_LineID: body.user_LineID });
+        const user = await sale_Report_User.findOne({
+      user_LineID: new RegExp(`^${body.user_LineID}$`, "i"),
+    });
 
     if (!user) {
       return new Response(JSON.stringify({ success: false, message: "User not found" }), {

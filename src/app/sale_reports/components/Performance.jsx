@@ -464,8 +464,12 @@ function flattenChangeBrands(report_ChangeBrands) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_LineID: userData.user_LineID }),
     });
+
     const nameData = await nameRes.json();
-    const userName = nameData?.user_Name || "ไม่พบชื่อ";
+
+    console.log("📥 ชื่อที่ได้จาก MongoDB:", nameData);
+
+    const userName = nameData?.user_Name || "ไม่พบชื่อ"; 
 
     await fetch("/api/send-telegram", {
       method: "POST",

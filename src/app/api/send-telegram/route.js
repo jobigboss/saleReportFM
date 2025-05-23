@@ -53,7 +53,7 @@ import sale_Report_User from "../../../../models/sale_Report_User"; // 🔁 Mode
 
 export async function POST(req) {
   try {
-    const body = await req.json();
+    const body = await req.json(); 
 
     await connectMongDB();
 

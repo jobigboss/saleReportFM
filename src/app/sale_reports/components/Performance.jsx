@@ -459,7 +459,7 @@ function flattenChangeBrands(report_ChangeBrands) {
 
     
     // ✅ ดึงชื่อผู้ใช้จาก MongoDB
-    const nameRes = await fetch("/api/user-name", {
+    const nameRes = await fetch("/api/user-name-line", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_LineID: userData.user_LineID }),

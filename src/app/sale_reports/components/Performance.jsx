@@ -431,7 +431,7 @@ function flattenChangeBrands(report_ChangeBrands) {
     };
 
     
-    // 2. ถัดมา → ส่งไป Google Sheet
+                // 2. ถัดมา → ส่งไป Google Sheet
       await fetch("/api/sent-google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -445,6 +445,7 @@ function flattenChangeBrands(report_ChangeBrands) {
       });
 
 
+
    const summary = buildFlexSummary(id, payload);
 
 
@@ -454,19 +455,6 @@ function flattenChangeBrands(report_ChangeBrands) {
       body: JSON.stringify({
         userId: userData.user_LineID,
         summary,
-      }),
-    });
-
-    await fetch("/api/send-telegram", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_LineID: userData.user_LineID,
-        store_Channel: formData.store_Channel || "",
-        store_Account: formData.store_Account || "",
-        store_Name: formData.store_Name || "",
-        store_Province: formData.store_Province || "",
-        store_Area2: formData.store_Area2 || "",
       }),
     });
 

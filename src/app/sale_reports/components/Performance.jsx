@@ -130,6 +130,7 @@ const TextAreaList = ({ title, values, setValues, placeholder }) => (
         liff.login({ redirectUri: window.location.href });
         return;
       }
+
       const profile = await liff.getProfile();
       const idToken = liff.getIDToken();
       const lineID = profile.userId || idToken || "";
@@ -139,6 +140,27 @@ const TextAreaList = ({ title, values, setValues, placeholder }) => (
         displayName: profile.displayName,
         pictureUrl: profile.pictureUrl,
       });
+
+      // ✅ ดึงชื่อจาก MongoDB
+      const res = await fetch("/api/user-name-line", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_LineID: lineID }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setUserData((prev) => ({
+          ...prev,
+          user_Name: data.user_Name,
+          user_Lastname: data.user_Lastname,
+          user_Phone: data.user_Phone,
+        }));
+        console.log("✅ ดึงชื่อผู้ใช้สำเร็จ:", data.user_Name);
+      } else {
+        console.warn("⚠️ ไม่พบชื่อผู้ใช้:", data.message);
+      }
+
     } catch (err) {
       console.error("LIFF init error:", err);
       Swal.fire({
@@ -151,6 +173,7 @@ const TextAreaList = ({ title, values, setValues, placeholder }) => (
 
   initLiff();
 }, []);
+
 
   useEffect(() => {
     if (formData?.quantities) {
@@ -469,8 +492,6 @@ function flattenChangeBrands(report_ChangeBrands) {
         store_Area2: formData.store_Area2 || "",
       }),
     });
-
-
 
 
     const result = await res.json();

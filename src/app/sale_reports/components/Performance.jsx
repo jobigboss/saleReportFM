@@ -485,7 +485,7 @@ await fetch("/api/send-telegram", {
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     user_LineID: userData.user_LineID,
-    user_Name: `${userData.user_Name || "ไม่พบชื่อ"} ${userData.user_Lastname || ""}`,
+    user_Name: userData.user_Name || "ไม่พบชื่อ",
     user_Phone: userData.user_Phone || "-",
     store_Channel: formData.store_Channel || "",
     store_Account: formData.store_Account || "",
@@ -494,6 +494,7 @@ await fetch("/api/send-telegram", {
     store_Area2: formData.store_Area2 || "",
   }),
 });
+
 
 
 

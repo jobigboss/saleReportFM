@@ -51,9 +51,6 @@
 import { connectMongDB } from "../../../../lib/mongodb"; // 🧠 เชื่อม MongoDB
 import sale_Report_User from "../../../../models/sale_Report_User"; // 🔁 Model ที่คุณแนบมา
 
-import { connectMongDB } from "../../../../lib/mongodb";
-import sale_Report_User from "../../../../models/sale_Report_User";
-
 export async function POST(req) {
   try {
     const body = await req.json();

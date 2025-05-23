@@ -459,31 +459,30 @@ function flattenChangeBrands(report_ChangeBrands) {
 
     
     // ✅ ดึงชื่อผู้ใช้จาก MongoDB
-    const nameRes = await fetch("/api/user-name-line", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_LineID: userData.user_LineID }),
-    });
+    // ดึงชื่อผู้ใช้จาก MongoDB
+const nameRes = await fetch("/api/user-name-line", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ user_LineID: userData.user_LineID }),
+});
+const nameData = await nameRes.json();
+const userName = nameData?.user_Name || "ไม่พบชื่อ";
 
-    const nameData = await nameRes.json();
+// ส่งไป Telegram
+await fetch("/api/send-telegram", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    user_LineID: userData.user_LineID,
+    user_Name: userName, // ✅ ต้องส่งชื่อไปที่นี่
+    store_Channel: formData.store_Channel || "",
+    store_Account: formData.store_Account || "",
+    store_Name: formData.store_Name || "",
+    store_Province: formData.store_Province || "",
+    store_Area2: formData.store_Area2 || "",
+  }),
+});
 
-    console.log("📥 ชื่อที่ได้จาก MongoDB:", nameData);
-
-    const userName = nameData?.user_Name || "ไม่พบชื่อ"; 
-
-    await fetch("/api/send-telegram", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_LineID: userData.user_LineID,
-        user_Name: userName,
-        store_Channel: formData.store_Channel || "",
-        store_Account: formData.store_Account || "",
-        store_Name: formData.store_Name || "",
-        store_Province: formData.store_Province || "",
-        store_Area2: formData.store_Area2 || "",
-      }),
-    });
 
     const result = await res.json();
     if (result?.success) {

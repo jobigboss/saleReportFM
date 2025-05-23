@@ -13,6 +13,7 @@ const message = `
 📢 รายงานใหม่จาก LIFF
 
 👤 ผู้ส่ง: ${body.user_Name}
+📞 เบอร์: ${body.user_Phone}
 🏪 ร้าน: ${body.store_Name}
 📦 ช่องทาง: ${body.store_Channel}
 📍 จังหวัด: ${body.store_Province}

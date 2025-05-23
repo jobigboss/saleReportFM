@@ -1,4 +1,4 @@
-//api/user-name-line/route.js
+// /api/user-name-line/route.js
 import { connectMongDB } from "../../../../lib/mongodb";
 import sale_Report_User from "../../../../models/sale_Report_User";
 
@@ -7,11 +7,7 @@ export async function POST(req) {
 
   try {
     await connectMongDB();
-    // const user = await sale_Report_User.findOne({ user_LineID: body.user_LineID });
-const user = await sale_Report_User.findOne({
-  user_LineID: new RegExp(`^${body.user_LineID}$`, "i"),
-});
-
+    const user = await sale_Report_User.findOne({ user_LineID: body.user_LineID });
 
     if (!user) {
       return new Response(JSON.stringify({ success: false, message: "User not found" }), {
@@ -19,11 +15,16 @@ const user = await sale_Report_User.findOne({
       });
     }
 
-    return new Response(JSON.stringify({ success: true, user_Name: user.user_Name }), {
+    return new Response(JSON.stringify({
+      success: true,
+      user_Name: user.user_Name,
+      user_Lastname: user.user_Lastname,
+      user_Phone: user.user_Phone
+    }), {
       status: 200,
     });
   } catch (error) {
-    console.error("❌ Error in /api/user-name:", error);
+    console.error("❌ Error in /api/user-name-line:", error);
     return new Response(JSON.stringify({ success: false, message: error.message }), {
       status: 500,
     });

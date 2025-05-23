@@ -130,6 +130,7 @@ const TextAreaList = ({ title, values, setValues, placeholder }) => (
         liff.login({ redirectUri: window.location.href });
         return;
       }
+
       const profile = await liff.getProfile();
       const idToken = liff.getIDToken();
       const lineID = profile.userId || idToken || "";
@@ -139,6 +140,27 @@ const TextAreaList = ({ title, values, setValues, placeholder }) => (
         displayName: profile.displayName,
         pictureUrl: profile.pictureUrl,
       });
+
+      // ✅ ดึงชื่อจาก MongoDB
+      const res = await fetch("/api/user-name-line", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_LineID: lineID }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setUserData((prev) => ({
+          ...prev,
+          user_Name: data.user_Name,
+          user_Lastname: data.user_Lastname,
+          user_Phone: data.user_Phone,
+        }));
+        console.log("✅ ดึงชื่อผู้ใช้สำเร็จ:", data.user_Name);
+      } else {
+        console.warn("⚠️ ไม่พบชื่อผู้ใช้:", data.message);
+      }
+
     } catch (err) {
       console.error("LIFF init error:", err);
       Swal.fire({
@@ -151,6 +173,7 @@ const TextAreaList = ({ title, values, setValues, placeholder }) => (
 
   initLiff();
 }, []);
+
 
   useEffect(() => {
     if (formData?.quantities) {
@@ -457,24 +480,13 @@ function flattenChangeBrands(report_ChangeBrands) {
       }),
     });
 
-    
-    // ✅ ดึงชื่อผู้ใช้จาก MongoDB
-    // ดึงชื่อผู้ใช้จาก MongoDB
-const nameRes = await fetch("/api/user-name-line", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ user_LineID: userData.user_LineID }),
-});
-const nameData = await nameRes.json();
-const userName = nameData?.user_Name || "ไม่พบชื่อ";
-
-// ส่งไป Telegram
 await fetch("/api/send-telegram", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     user_LineID: userData.user_LineID,
-    user_Name: userName, // ✅ ต้องส่งชื่อไปที่นี่
+    user_Name: `${userData.user_Name || "ไม่พบชื่อ"} ${userData.user_Lastname || ""}`,
+    user_Phone: userData.user_Phone || "-",
     store_Channel: formData.store_Channel || "",
     store_Account: formData.store_Account || "",
     store_Name: formData.store_Name || "",
@@ -482,6 +494,7 @@ await fetch("/api/send-telegram", {
     store_Area2: formData.store_Area2 || "",
   }),
 });
+
 
 
     const result = await res.json();

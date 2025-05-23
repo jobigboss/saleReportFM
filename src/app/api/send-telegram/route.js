@@ -12,6 +12,7 @@ export async function POST(req) {
 const message = `
 📢 รายงานใหม่จาก LIFF
 
+  ID ผู้ส่ง: ${body.user_LineID || "ไม่พบชื่อ"}
 👤 ผู้ส่ง: ${body.user_Name || "ไม่พบชื่อ"}
 📞 เบอร์: ${body.user_Phone || "-"}
 🏪 ร้าน: ${body.store_Name}

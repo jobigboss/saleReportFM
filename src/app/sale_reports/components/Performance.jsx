@@ -444,10 +444,7 @@ function flattenChangeBrands(report_ChangeBrands) {
         body: JSON.stringify(perPayload)
       });
 
-
    const summary = buildFlexSummary(id, payload);
-
-
     await fetch("/api/send-line", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

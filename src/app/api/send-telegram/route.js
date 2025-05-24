@@ -25,13 +25,13 @@ export async function POST(req) {
   const message = `
 📢 รายงานใหม่จาก LIFF
 
-👤 ผู้ใช้งาน: ${userName} ${userLastname}
-📱 เบอร์โทร: ${userPhone}
-🏪 ร้าน: ${body.store_Name}
-📦 ช่องทาง: ${body.store_Channel}
-📍 จังหวัด: ${body.store_Province}
-📍 เขต: ${body.store_Area2}
-💼 บัญชี: ${body.store_Account}
+ผู้ส่งรายงาน: ${userName} ${userLastname}
+เบอร์โทร: ${userPhone}
+ร้าน: ${body.store_Name}
+ช่องทาง: ${body.store_Channel}
+จังหวัด: ${body.store_Province}
+เขต: ${body.store_Area2}
+บัญชี: ${body.store_Account}
 `.trim();
 
   const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;

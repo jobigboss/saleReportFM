@@ -1,68 +1,92 @@
-import sale_Report from "../../../../models/sale_Report";
-import { connectMongoDB } from "../../../../lib/mongodb";
+import { getCheerSummaryByChannel } from "@/utils/getCheerSummaryByChannel";
+import { getPerformanceSummary } from "@/utils/getPerformanceSummary"; // สมมุติมีอีก function นี้
 
-export async function getCheerSummaryByChannel(from, to, weekendOnly = false) {
-  await connectMongoDB();
+const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
 
-  const start = new Date(from);
-  const end = new Date(to);
-  end.setHours(23,59,59,999);
+export async function POST(req) {
+  const body = await req.json();
+  const chatId = body.message?.chat.id || body.callback_query?.message?.chat.id;
+  const text = body.message?.text?.trim() || body.callback_query?.data;
 
-  // กรองตามวันที่
-  const filter = {
-    report_SubmitAt: { $gte: start, $lte: end },
-    report_cheerType: { $exists: true, $ne: "" }
+  // 1. ทักทาย
+  if (text && text.toLowerCase().includes("hello demon")) {
+    await sendText(chatId, "มีอะไรให้ผมรับใช้ครับ", [
+      [
+        { text: "สรุปยอดเชียร์ขาย", callback_data: "summary_cheer" },
+        { text: "สรุปยอด Performance", callback_data: "summary_perf" }
+      ]
+    ]);
+    return Response.json({ ok: true });
+  }
+
+  // 2. กดปุ่มเลือก (เชียร์ขาย/Performance)
+  if (text === "summary_cheer" || text === "summary_perf") {
+    await sendText(chatId, "โปรดเลือกช่วงวันที่", [
+      [
+        { text: "7 วันล่าสุด", callback_data: `daterange_${text}_last7` },
+        { text: "เดือนนี้", callback_data: `daterange_${text}_thismonth` }
+      ],
+      [
+        { text: "กำหนดเอง", callback_data: `daterange_${text}_custom` }
+      ]
+    ]);
+    return Response.json({ ok: true });
+  }
+
+  // 3. เลือกช่วงวัน (ตัวอย่างแบบสำเร็จรูป)
+  if (text?.startsWith("daterange_summary_cheer")) {
+    let from, to;
+    const today = new Date();
+    if (text.endsWith("last7")) {
+      to = today.toISOString().slice(0, 10);
+      from = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    } else if (text.endsWith("thismonth")) {
+      to = today.toISOString().slice(0, 10);
+      from = `${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2, '0')}-01`;
+    }
+    // (true=เฉพาะเสาร์อาทิตย์, false=ทุกวัน)
+    const summaryText = await getCheerSummaryByChannel(from, to, false); 
+    await sendText(chatId, summaryText);
+    return Response.json({ ok: true });
+  }
+  if (text?.startsWith("daterange_summary_perf")) {
+    // เหมือนด้านบน แค่เรียก getPerformanceSummary แทน
+    // ...
+    return Response.json({ ok: true });
+  }
+
+  // 4. ถ้าเลือก "กำหนดเอง"
+  if (text?.startsWith("daterange_summary_cheer_custom")) {
+    await sendText(chatId, "โปรดพิมพ์ช่วงวันที่ที่ต้องการ (เช่น 2025-05-01 ถึง 2025-05-25)");
+    return Response.json({ ok: true });
+  }
+
+  // 5. ถ้า user พิมพ์วันที่เอง
+  if (/^\d{4}-\d{2}-\d{2}\s*ถึง\s*\d{4}-\d{2}-\d{2}$/.test(text)) {
+    const [from, to] = text.split("ถึง").map(s => s.trim());
+    const summaryText = await getCheerSummaryByChannel(from, to, false);
+    await sendText(chatId, summaryText);
+    return Response.json({ ok: true });
+  }
+
+  return Response.json({ ok: true });
+}
+
+// Helper ส่งข้อความ+ปุ่ม
+async function sendText(chatId, text, buttons = null) {
+  const payload = {
+    chat_id: chatId,
+    text,
+    ...(buttons && {
+      reply_markup: {
+        inline_keyboard: buttons
+      }
+    })
   };
-
-  let reports = await sale_Report.find(filter);
-
-  // ถ้าเอาเฉพาะเสาร์อาทิตย์
-  if (weekendOnly) {
-    reports = reports.filter(r => {
-      const d = new Date(r.report_SubmitAt);
-      const day = d.getDay();
-      return day === 0 || day === 6;
-    });
-  }
-
-  // แยก Channel
-  const summaryByChannel = { MT: [], GT: [] };
-  reports.forEach(r => {
-    const ch = (r.store_Channel || "ไม่ระบุ").toUpperCase();
-    if (ch.includes("MT")) summaryByChannel.MT.push(r);
-    else if (ch.includes("GT")) summaryByChannel.GT.push(r);
+  await fetch(`${TELEGRAM_API}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
   });
-
-  // สรุปแต่ละ Channel
-  function getStats(arr) {
-    let totalSample = 0, totalBills = 0;
-    arr.forEach(r => {
-      totalSample += r.report_sampleCups || 0;
-      totalBills += r.report_billsSold || 0;
-    });
-    return {
-      activities: arr.length,
-      totalSample,
-      totalBills,
-      avgSample: arr.length ? (totalSample / arr.length).toFixed(1) : 0,
-      avgBills: arr.length ? (totalBills / arr.length).toFixed(1) : 0
-    };
-  }
-
-  const MT = getStats(summaryByChannel.MT);
-  const GT = getStats(summaryByChannel.GT);
-
-  // สรุปข้อความ
-  let txt = `📊 สรุปยอดเชียร์ขาย (${from} ถึง ${to})\n(เฉพาะ${weekendOnly ? "เสาร์-อาทิตย์" : "ทุกวัน"})\n\n`;
-  txt += `【MT】\n`;
-  txt += `- จำนวนกิจกรรม: ${MT.activities}\n- ตัวอย่างแจก: ${MT.totalSample.toLocaleString()} ถ้วย\n- ปิดการขาย: ${MT.totalBills.toLocaleString()} บิล\n- ตัวอย่างเฉลี่ย: ${MT.avgSample}/กิจกรรม\n- บิลเฉลี่ย: ${MT.avgBills}/กิจกรรม\n\n`;
-  txt += `【GT】\n`;
-  txt += `- จำนวนกิจกรรม: ${GT.activities}\n- ตัวอย่างแจก: ${GT.totalSample.toLocaleString()} ถ้วย\n- ปิดการขาย: ${GT.totalBills.toLocaleString()} บิล\n- ตัวอย่างเฉลี่ย: ${GT.avgSample}/กิจกรรม\n- บิลเฉลี่ย: ${GT.avgBills}/กิจกรรม\n\n`;
-
-  // รวม (ถ้าต้องการ)
-  const ALL = getStats(reports);
-  txt += `【รวมทั้งหมด】\n`;
-  txt += `- จำนวนกิจกรรม: ${ALL.activities}\n- ตัวอย่างแจก: ${ALL.totalSample.toLocaleString()} ถ้วย\n- ปิดการขาย: ${ALL.totalBills.toLocaleString()} บิล\n`;
-
-  return txt;
 }

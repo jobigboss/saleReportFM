@@ -33,7 +33,7 @@ export async function getPerformanceSummary(from, to) {
 
   // สร้างข้อมูลข้อความสรุปแบบตาราง
   let textTable = `📋 Performance \n จาก ${from} ถึง ${to} \n
-      วันที่       | บิลขาย | แก้วชงชิม | CR %`;
+      วันที่        | บิลขาย | แก้วชงชิม | CR %`;
   const chartLabels = [];
   const chartBills = [];
   const chartCups = [];
@@ -41,7 +41,7 @@ export async function getPerformanceSummary(from, to) {
   for (const date of Object.keys(dailySummary).sort()) {
     const { bills, cups } = dailySummary[date];
     const percent = cups > 0 ? ((bills / cups) * 100).toFixed(1) + '%' : '-';
-    textTable += `\n${date} |    ${formatNumber(bills)}    | ${formatNumber(cups)} | ${percent}`;
+    textTable += `\n${date} |    ${formatNumber(bills)}    |    ${formatNumber(cups)}    | ${percent}`;
     chartLabels.push(date.slice(5));
     chartBills.push(bills);
     chartCups.push(cups);

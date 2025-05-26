@@ -85,9 +85,12 @@ export async function getPerformanceSummary(from, to) {
     }
   };
 
-  const chartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(chartConfig))}&plugins=datalabels`;
+  const chartImageUrl = `https://quickchart.io/chart/render/zm-${Date.now()}?c=${encodeURIComponent(JSON.stringify(chartConfig))}&plugins=datalabels`;
 
-  // รวมข้อความ
-  const result = `${textTable}\n\n📊 กราฟ: ${chartUrl}`;
-  return result;
+  // ส่งทั้งข้อความ + URL รูปแยก
+  return {
+    text: textTable,
+    image: chartImageUrl
+  };
 }
+

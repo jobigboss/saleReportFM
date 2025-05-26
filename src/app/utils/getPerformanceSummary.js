@@ -1,5 +1,5 @@
-import { connectMongoDB } from "@/lib/mongodb";
-import sale_Report from "@/models/sale_Report";
+import { connectMongoDB } from "../../../lib/mongodb";
+import sale_Report from "../../../models/sale_Report";
 
 export async function getPerformanceSummary(from, to) {
   await connectMongoDB();
@@ -29,7 +29,7 @@ export async function getPerformanceSummary(from, to) {
   }
 
   // สร้างข้อมูลข้อความสรุปแบบตาราง
-  let textTable = `📋 Performance จาก ${from} ถึง ${to}:
+  let textTable = `📋 Performance \n จาก ${from} ถึง ${to}:
 วันที่        | บิลขาย | แก้วชงชิม
 -------------|--------|----------`;
   const chartLabels = [];

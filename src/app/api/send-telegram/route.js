@@ -25,6 +25,7 @@ export async function POST(req) {
   const message = `
 📢 รายงานใหม่จาก LIFF
 
+รหัส Report : ${body.report_ID}
 ผู้ส่งรายงาน: ${userName} ${userLastname}
 เบอร์โทร: ${userPhone}
 ร้าน: ${body.store_Name}

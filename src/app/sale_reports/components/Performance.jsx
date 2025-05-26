@@ -251,6 +251,7 @@ const buildFlexSummary = (id, formData) => {
 
   // 🧭 Section 1: ข้อมูลร้าน
   const storeText = [
+    formData.report_ID && `รหัส Report : ${formData.report_ID}`,
     formData.store_Channel && `ช่องทาง: ${formData.store_Channel}`,
     formData.store_Account && `บัญชีร้าน: ${formData.store_Account}`,
     formData.store_Name && `ชื่อร้าน: ${formData.store_Name}`,
@@ -415,7 +416,7 @@ function flattenChangeBrands(report_ChangeBrands) {
     
     const performance = flattenChangeBrands(brandCounts);
 
-    const perPayload = {
+    const perPayload = {    
       user_LineID: userData.user_LineID,
       user_DisplayName: lineProfile.displayName,
       report_SubmitAt: now,
@@ -458,6 +459,7 @@ function flattenChangeBrands(report_ChangeBrands) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        report_ID: id,
         user_LineID: userData.user_LineID,
         store_Channel: formData.store_Channel || "",
         store_Account: formData.store_Account || "",

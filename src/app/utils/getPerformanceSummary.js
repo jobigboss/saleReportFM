@@ -1,6 +1,7 @@
 import { connectMongoDB } from "../../../lib/mongodb";
 import sale_Report from "../../../models/sale_Report";
 
+
 export async function getPerformanceSummary(from, to) {
   await connectMongoDB();
 
@@ -28,9 +29,11 @@ export async function getPerformanceSummary(from, to) {
     dailySummary[date].cups += cups;
   }
 
+  const formatNumber = (num) => num.toLocaleString("en-US");
+
   // สร้างข้อมูลข้อความสรุปแบบตาราง
   let textTable = `📋 Performance \n จาก ${from} ถึง ${to}:
-วันที่         | บิลขาย    | แก้วชงชิม   | Conversion Rete
+วันที่        | บิลขาย | แก้วชงชิม | Conversion Rete
 -------------|--------|-----------|-------------`;
   const chartLabels = [];
   const chartBills = [];
@@ -39,14 +42,14 @@ export async function getPerformanceSummary(from, to) {
   for (const date of Object.keys(dailySummary).sort()) {
     const { bills, cups } = dailySummary[date];
     const percent = cups > 0 ? ((bills / cups) * 100).toFixed(1) + '%' : '-';
-    textTable += `\n${date}   | ${bills}     | ${cups}       | ${percent}`;
+    textTable += `\n${date} | ${formatNumber(bills)} | ${formatNumber(cups)} | ${percent}`;
     chartLabels.push(date.slice(5));
     chartBills.push(bills);
     chartCups.push(cups);
   }
 
   // สร้าง URL สำหรับกราฟด้วย QuickChart พร้อมแสดงค่า
-    const chartConfig = {
+  const chartConfig = {
     type: "bar",
     data: {
       labels: chartLabels,
@@ -75,9 +78,8 @@ export async function getPerformanceSummary(from, to) {
           },
           formatter: function(value, context) {
             const dataset = context.dataset;
-            const index = context.dataIndex;
             const label = dataset.label;
-            return `${label}: ${value}`;
+            return `${label}: ${value.toLocaleString("en-US")}`;
           }
         }
       }

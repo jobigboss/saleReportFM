@@ -29,8 +29,8 @@ export async function getPerformanceSummary(from, to) {
   }
 
   // สร้างข้อมูลข้อความสรุปแบบตาราง
-  let textTable = `📋 Performance จาก ${from} ถึง ${to}:
-วันที่          | บิลขาย    | แก้วชงชิม     | Conversion Rete
+  let textTable = `📋 Performance \n จาก ${from} ถึง ${to}:
+วันที่         | บิลขาย    | แก้วชงชิม   | Conversion Rete
 -------------|--------|-----------|-------------`;
   const chartLabels = [];
   const chartBills = [];
@@ -83,6 +83,7 @@ export async function getPerformanceSummary(from, to) {
       }
     }
   };
+
   const chartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(chartConfig))}&plugins=datalabels`;
 
   // รวมข้อความ

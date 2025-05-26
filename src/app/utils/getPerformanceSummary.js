@@ -32,7 +32,7 @@ export async function getPerformanceSummary(from, to) {
   const formatNumber = (num) => num.toLocaleString("en-US");
 
   // สร้างข้อมูลข้อความสรุปแบบตาราง
-  let textTable = `📋 Performance \n จาก ${from} ถึง ${to}:
+  let textTable = `📋 Performance \n จาก ${from} ถึง ${to} \n
 วันที่  | บิลขาย | แก้วชงชิม | CR %`;
   const chartLabels = [];
   const chartBills = [];

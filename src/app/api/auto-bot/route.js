@@ -1,5 +1,5 @@
 import { getCheerSummaryByChannel } from "../../utils/getPerformanceSummary";
-import { getPerformanceSummary } from "../../utils/getPerformanceSummary"; 
+import { getPerformanceSummary } from "../../utils/getPerformanceSummary";
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
@@ -34,8 +34,8 @@ export async function POST(req) {
     return Response.json({ ok: true });
   }
 
-  // 3. เลือกช่วงวัน (ตัวอย่างแบบสำเร็จรูป)
-  if (text?.startsWith("daterange_summary_cheer")) {
+  // 3. เลือกช่วงวัน (7 วัน หรือ เดือนนี้)
+  if (text?.startsWith("daterange_summary_cheer") || text?.startsWith("daterange_summary_perf")) {
     let from, to;
     const today = new Date();
     if (text.endsWith("last7")) {
@@ -43,29 +43,41 @@ export async function POST(req) {
       from = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     } else if (text.endsWith("thismonth")) {
       to = today.toISOString().slice(0, 10);
-      from = `${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2, '0')}-01`;
+      from = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, "0")}-01`;
     }
-    // (true=เฉพาะเสาร์อาทิตย์, false=ทุกวัน)
-    const summaryText = await getCheerSummaryByChannel(from, to, false); 
-    await sendText(chatId, summaryText);
-    return Response.json({ ok: true });
-  }
-  if (text?.startsWith("daterange_summary_perf")) {
-    // เหมือนด้านบน แค่เรียก getPerformanceSummary แทน
-    // ...
+
+    if (text.includes("summary_cheer")) {
+      const summaryText = await getCheerSummaryByChannel(from, to, false);
+      await sendText(chatId, summaryText);
+    } else if (text.includes("summary_perf")) {
+      const summaryText = await getPerformanceSummary(from, to);
+      await sendText(chatId, summaryText);
+    }
     return Response.json({ ok: true });
   }
 
   // 4. ถ้าเลือก "กำหนดเอง"
   if (text?.startsWith("daterange_summary_cheer_custom")) {
-    await sendText(chatId, "โปรดพิมพ์ช่วงวันที่ที่ต้องการ (เช่น 2025-05-01 ถึง 2025-05-25)");
+    await sendText(chatId, "📅 โปรดพิมพ์ช่วงวันที่ เช่น:\ncustom_cheer:2025-05-01 ถึง 2025-05-25");
     return Response.json({ ok: true });
   }
 
-  // 5. ถ้า user พิมพ์วันที่เอง
-  if (/^\d{4}-\d{2}-\d{2}\s*ถึง\s*\d{4}-\d{2}-\d{2}$/.test(text)) {
-    const [from, to] = text.split("ถึง").map(s => s.trim());
+  if (text?.startsWith("daterange_summary_perf_custom")) {
+    await sendText(chatId, "📅 โปรดพิมพ์ช่วงวันที่ เช่น:\ncustom_perf:2025-05-01 ถึง 2025-05-25");
+    return Response.json({ ok: true });
+  }
+
+  // 5. ถ้า user พิมพ์ช่วงวันที่แบบ custom
+  if (/^custom_cheer:\d{4}-\d{2}-\d{2}\s*ถึง\s*\d{4}-\d{2}-\d{2}$/.test(text)) {
+    const [from, to] = text.replace("custom_cheer:", "").split("ถึง").map(s => s.trim());
     const summaryText = await getCheerSummaryByChannel(from, to, false);
+    await sendText(chatId, summaryText);
+    return Response.json({ ok: true });
+  }
+
+  if (/^custom_perf:\d{4}-\d{2}-\d{2}\s*ถึง\s*\d{4}-\d{2}-\d{2}$/.test(text)) {
+    const [from, to] = text.replace("custom_perf:", "").split("ถึง").map(s => s.trim());
+    const summaryText = await getPerformanceSummary(from, to);
     await sendText(chatId, summaryText);
     return Response.json({ ok: true });
   }
@@ -73,7 +85,7 @@ export async function POST(req) {
   return Response.json({ ok: true });
 }
 
-// Helper ส่งข้อความ+ปุ่ม
+// Helper ส่งข้อความ + ปุ่ม
 async function sendText(chatId, text, buttons = null) {
   const payload = {
     chat_id: chatId,

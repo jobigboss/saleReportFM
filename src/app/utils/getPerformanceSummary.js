@@ -29,23 +29,24 @@ export async function getPerformanceSummary(from, to) {
   }
 
   // สร้างข้อมูลข้อความสรุปแบบตาราง
-  let textTable = `📋 Performance \n จาก ${from} ถึง ${to}:
-วันที่        | บิลขาย | แก้วชงชิม
--------------|--------|----------`;
+  let textTable = `📋 Performance จาก ${from} ถึง ${to}:
+วันที่          | บิลขาย    | แก้วชงชิม     | Conversion Rete
+-------------|--------|-----------|-------------`;
   const chartLabels = [];
   const chartBills = [];
   const chartCups = [];
 
   for (const date of Object.keys(dailySummary).sort()) {
     const { bills, cups } = dailySummary[date];
-    textTable += `\n${date}   | ${bills}     | ${cups}`;
+    const percent = cups > 0 ? ((bills / cups) * 100).toFixed(1) + '%' : '-';
+    textTable += `\n${date}   | ${bills}     | ${cups}       | ${percent}`;
     chartLabels.push(date.slice(5));
     chartBills.push(bills);
     chartCups.push(cups);
   }
 
-  // สร้าง URL สำหรับกราฟด้วย QuickChart
-  const chartConfig = {
+  // สร้าง URL สำหรับกราฟด้วย QuickChart พร้อมแสดงค่า
+    const chartConfig = {
     type: "bar",
     data: {
       labels: chartLabels,
@@ -61,9 +62,28 @@ export async function getPerformanceSummary(from, to) {
           backgroundColor: "rgba(255, 206, 86, 0.7)"
         }
       ]
+    },
+    options: {
+      plugins: {
+        datalabels: {
+          display: true,
+          anchor: 'end',
+          align: 'top',
+          color: '#000',
+          font: {
+            weight: 'bold'
+          },
+          formatter: function(value, context) {
+            const dataset = context.dataset;
+            const index = context.dataIndex;
+            const label = dataset.label;
+            return `${label}: ${value}`;
+          }
+        }
+      }
     }
   };
-  const chartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(chartConfig))}`;
+  const chartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(chartConfig))}&plugins=datalabels`;
 
   // รวมข้อความ
   const result = `${textTable}\n\n📊 กราฟ: ${chartUrl}`;

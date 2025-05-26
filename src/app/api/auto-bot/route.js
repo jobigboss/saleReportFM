@@ -9,6 +9,8 @@ export async function POST(req) {
   const chatId = body.message?.chat.id || body.callback_query?.message?.chat.id;
   const text = body.message?.text?.trim() || body.callback_query?.data;
 
+  console.log("📥 ได้รับข้อความ:", text);
+
   // 1. ทักทาย
   if (text && text.toLowerCase().includes("hello demon")) {
     await sendText(chatId, "มีอะไรให้ผมรับใช้ครับ", [
@@ -20,24 +22,23 @@ export async function POST(req) {
     return Response.json({ ok: true });
   }
 
-  // 2. กดปุ่มเลือก (เชียร์ขาย/Performance)
+  // 2. เลือกประเภทสรุป
   if (text === "summary_cheer" || text === "summary_perf") {
     await sendText(chatId, "โปรดเลือกช่วงวันที่", [
       [
         { text: "7 วันล่าสุด", callback_data: `daterange_${text}_last7` },
         { text: "เดือนนี้", callback_data: `daterange_${text}_thismonth` }
       ],
-      [
-        { text: "กำหนดเอง", callback_data: `daterange_${text}_custom` }
-      ]
+      [{ text: "กำหนดเอง", callback_data: `daterange_${text}_custom` }]
     ]);
     return Response.json({ ok: true });
   }
 
-  // 3. เลือกช่วงวัน (7 วัน หรือ เดือนนี้)
+  // 3. เลือกช่วงวันที่ (7 วัน / เดือนนี้)
   if (text?.startsWith("daterange_summary_cheer") || text?.startsWith("daterange_summary_perf")) {
     let from, to;
     const today = new Date();
+
     if (text.endsWith("last7")) {
       to = today.toISOString().slice(0, 10);
       from = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -46,46 +47,71 @@ export async function POST(req) {
       from = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, "0")}-01`;
     }
 
-    if (text.includes("summary_cheer")) {
-      const summaryText = await getCheerSummaryByChannel(from, to, false);
-      await sendText(chatId, summaryText);
-    } else if (text.includes("summary_perf")) {
-      const summaryText = await getPerformanceSummary(from, to);
-      await sendText(chatId, summaryText);
+    if (from && to) {
+      try {
+        if (text.includes("summary_cheer")) {
+          const summaryText = await getCheerSummaryByChannel(from, to, false);
+          await sendText(chatId, summaryText);
+        } else if (text.includes("summary_perf")) {
+          const summaryText = await getPerformanceSummary(from, to);
+          await sendText(chatId, summaryText);
+        }
+      } catch (err) {
+        console.error("❌ Error summary:", err);
+        await sendText(chatId, "เกิดข้อผิดพลาดในการโหลดข้อมูล");
+      }
+    } else {
+      await sendText(chatId, "❌ ไม่สามารถคำนวณช่วงวันที่ได้");
     }
+
     return Response.json({ ok: true });
   }
 
   // 4. ถ้าเลือก "กำหนดเอง"
   if (text?.startsWith("daterange_summary_cheer_custom")) {
-    await sendText(chatId, "📅 โปรดพิมพ์ช่วงวันที่ เช่น:\ncustom_cheer:2025-05-01 ถึง 2025-05-25");
+    await sendText(chatId, "📅 พิมพ์ช่วงวันที่ เช่น:\ncustom_cheer:2025-05-01 ถึง 2025-05-25");
     return Response.json({ ok: true });
   }
 
   if (text?.startsWith("daterange_summary_perf_custom")) {
-    await sendText(chatId, "📅 โปรดพิมพ์ช่วงวันที่ เช่น:\ncustom_perf:2025-05-01 ถึง 2025-05-25");
+    await sendText(chatId, "📅 พิมพ์ช่วงวันที่ เช่น:\ncustom_perf:2025-05-01 ถึง 2025-05-25");
     return Response.json({ ok: true });
   }
 
-  // 5. ถ้า user พิมพ์ช่วงวันที่แบบ custom
+  // 5. พิมพ์ custom date range
   if (/^custom_cheer:\d{4}-\d{2}-\d{2}\s*ถึง\s*\d{4}-\d{2}-\d{2}$/.test(text)) {
-    const [from, to] = text.replace("custom_cheer:", "").split("ถึง").map(s => s.trim());
-    const summaryText = await getCheerSummaryByChannel(from, to, false);
-    await sendText(chatId, summaryText);
+    const [from, to] = text.replace("custom_cheer:", "").split("ถึง").map((s) => s.trim());
+    try {
+      const summaryText = await getCheerSummaryByChannel(from, to, false);
+      await sendText(chatId, summaryText);
+    } catch (err) {
+      console.error("❌ Error cheer custom:", err);
+      await sendText(chatId, "เกิดข้อผิดพลาดในการโหลดข้อมูลเชียร์ขาย");
+    }
     return Response.json({ ok: true });
   }
 
   if (/^custom_perf:\d{4}-\d{2}-\d{2}\s*ถึง\s*\d{4}-\d{2}-\d{2}$/.test(text)) {
-    const [from, to] = text.replace("custom_perf:", "").split("ถึง").map(s => s.trim());
-    const summaryText = await getPerformanceSummary(from, to);
-    await sendText(chatId, summaryText);
+    const [from, to] = text.replace("custom_perf:", "").split("ถึง").map((s) => s.trim());
+    try {
+      const summaryText = await getPerformanceSummary(from, to);
+      await sendText(chatId, summaryText);
+    } catch (err) {
+      console.error("❌ Error perf custom:", err);
+      await sendText(chatId, "เกิดข้อผิดพลาดในการโหลดข้อมูล Performance");
+    }
     return Response.json({ ok: true });
+  }
+
+  // fallback
+  if (text) {
+    await sendText(chatId, `📝 คุณพิมพ์ว่า: ${text}\nลองพิมพ์ตามรูปแบบ เช่น: custom_perf:2025-05-01 ถึง 2025-05-25`);
   }
 
   return Response.json({ ok: true });
 }
 
-// Helper ส่งข้อความ + ปุ่ม
+// Helper function ส่งข้อความ + ปุ่ม
 async function sendText(chatId, text, buttons = null) {
   const payload = {
     chat_id: chatId,
@@ -96,9 +122,13 @@ async function sendText(chatId, text, buttons = null) {
       }
     })
   };
-  await fetch(`${TELEGRAM_API}/sendMessage`, {
+
+  const res = await fetch(`${TELEGRAM_API}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
+
+  const result = await res.json();
+  console.log("📤 ส่งข้อความแล้ว:", result.ok ? "✅ OK" : result);
 }

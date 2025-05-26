@@ -54,8 +54,12 @@ export async function POST(req) {
           await sendText(chatId, summaryText);
         } else if (text.includes("summary_perf")) {
           const summary = await getPerformanceSummary(from, to);
-          await sendText(chatId, summary.text);
-          if (summary.image) await sendPhoto(chatId, summary.image);
+          if (typeof summary === "string") {
+            await sendText(chatId, summary);
+          } else {
+            await sendText(chatId, summary.text);
+            if (summary.image) await sendPhoto(chatId, summary.image);
+          }
         }
       } catch (err) {
         console.error("❌ Error summary:", err);
@@ -96,8 +100,12 @@ export async function POST(req) {
     const [from, to] = text.replace("custom_perf:", "").split("ถึง").map((s) => s.trim());
     try {
       const summary = await getPerformanceSummary(from, to);
-      await sendText(chatId, summary.text);
-      if (summary.image) await sendPhoto(chatId, summary.image);
+      if (typeof summary === "string") {
+        await sendText(chatId, summary);
+      } else {
+        await sendText(chatId, summary.text);
+        if (summary.image) await sendPhoto(chatId, summary.image);
+      }
     } catch (err) {
       console.error("❌ Error perf custom:", err);
       await sendText(chatId, "เกิดข้อผิดพลาดในการโหลดข้อมูล Performance");

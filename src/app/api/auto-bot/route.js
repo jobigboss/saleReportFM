@@ -1,5 +1,5 @@
 import { getCheerSummaryByChannel } from "../../utils/getPerformanceSummary";
-import { getPerformanceSummary } from "../../utils/getPerformanceSummary"; // สมมุติมีอีก function นี้
+import { getPerformanceSummary } from "../../utils/getPerformanceSummary"; 
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;

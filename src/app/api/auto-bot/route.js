@@ -53,8 +53,9 @@ export async function POST(req) {
           const summaryText = await getCheerSummaryByChannel(from, to, false);
           await sendText(chatId, summaryText);
         } else if (text.includes("summary_perf")) {
-          const summaryText = await getPerformanceSummary(from, to);
-          await sendText(chatId, summaryText);
+          const summary = await getPerformanceSummary(from, to);
+          await sendText(chatId, summary.text);
+          if (summary.image) await sendPhoto(chatId, summary.image);
         }
       } catch (err) {
         console.error("❌ Error summary:", err);
@@ -94,8 +95,9 @@ export async function POST(req) {
   if (/^custom_perf:\d{4}-\d{2}-\d{2}\s*ถึง\s*\d{4}-\d{2}-\d{2}$/.test(text)) {
     const [from, to] = text.replace("custom_perf:", "").split("ถึง").map((s) => s.trim());
     try {
-      const summaryText = await getPerformanceSummary(from, to);
-      await sendText(chatId, summaryText);
+      const summary = await getPerformanceSummary(from, to);
+      await sendText(chatId, summary.text);
+      if (summary.image) await sendPhoto(chatId, summary.image);
     } catch (err) {
       console.error("❌ Error perf custom:", err);
       await sendText(chatId, "เกิดข้อผิดพลาดในการโหลดข้อมูล Performance");
@@ -131,4 +133,17 @@ async function sendText(chatId, text, buttons = null) {
 
   const result = await res.json();
   console.log("📤 ส่งข้อความแล้ว:", result.ok ? "✅ OK" : result);
+}
+
+// Helper function ส่งรูปภาพ
+async function sendPhoto(chatId, imageUrl, caption = '') {
+  await fetch(`${TELEGRAM_API}/sendPhoto`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      photo: imageUrl,
+      caption: caption
+    })
+  });
 }

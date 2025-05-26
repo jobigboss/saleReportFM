@@ -1,5 +1,5 @@
-import { connectMongoDB } from "../../../lib/mongodb";
-import sale_Report from "../../../models/sale_Report";
+import { connectMongoDB } from "@/lib/mongodb";
+import sale_Report from "@/models/sale_Report";
 
 export async function getPerformanceSummary(from, to) {
   await connectMongoDB();
@@ -19,22 +19,29 @@ export async function getPerformanceSummary(from, to) {
   for (const r of reports) {
     const date = r.report_SubmitAt.toISOString().slice(0, 10);
     const bills = r.report_billsSold || 0;
+    const cups = r.report_sampleCups || 0;
 
     if (!dailySummary[date]) {
-      dailySummary[date] = 0;
+      dailySummary[date] = { bills: 0, cups: 0 };
     }
-    dailySummary[date] += bills;
+    dailySummary[date].bills += bills;
+    dailySummary[date].cups += cups;
   }
 
   // สร้างข้อมูลข้อความสรุปแบบตาราง
-  let textTable = `📋 Performance จาก ${from} ถึง ${to}:\nวันที่        | บิลขาย\n-------------|--------`;
+  let textTable = `📋 Performance จาก ${from} ถึง ${to}:
+วันที่        | บิลขาย | แก้วชงชิม
+-------------|--------|----------`;
   const chartLabels = [];
-  const chartData = [];
+  const chartBills = [];
+  const chartCups = [];
 
   for (const date of Object.keys(dailySummary).sort()) {
-    textTable += `\n${date}   | ${dailySummary[date]}`;
+    const { bills, cups } = dailySummary[date];
+    textTable += `\n${date}   | ${bills}     | ${cups}`;
     chartLabels.push(date.slice(5));
-    chartData.push(dailySummary[date]);
+    chartBills.push(bills);
+    chartCups.push(cups);
   }
 
   // สร้าง URL สำหรับกราฟด้วย QuickChart
@@ -45,8 +52,13 @@ export async function getPerformanceSummary(from, to) {
       datasets: [
         {
           label: "บิลขาย",
-          data: chartData,
+          data: chartBills,
           backgroundColor: "rgba(54, 162, 235, 0.7)"
+        },
+        {
+          label: "แก้วชงชิม",
+          data: chartCups,
+          backgroundColor: "rgba(255, 206, 86, 0.7)"
         }
       ]
     }

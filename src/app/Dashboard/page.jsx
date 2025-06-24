@@ -10,8 +10,11 @@ import {
   ResponsiveContainer,
   LabelList,
 } from "recharts";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 const productOptions = {
+  ALL: "สินค้าทั้งหมด",
   sur_Omega369Gold1: "Omega369 Gold 1+",
   sur_Omega369Gold4: "Omega369 Gold 4+",
   sur_Omega369Smart1: "Omega369 Smart 1+",
@@ -62,10 +65,11 @@ function DashboardPage() {
   const [selectedProduct, setSelectedProduct] = useState("sur_Omega369Gold1");
   const [chartData, setChartData] = useState([]);
   const [storeAccountData, setStoreAccountData] = useState([]);
+  const [tableData, setTableData] = useState([]);
   const [total, setTotal] = useState({ MT: 0, GT: 0 });
-
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
     const today = new Date();
@@ -106,35 +110,81 @@ function DashboardPage() {
       );
     });
 
+    const productKeys =
+      selectedProduct === "ALL"
+        ? Object.keys(productOptions).filter((key) => key !== "ALL")
+        : [selectedProduct];
+
+    const tableRows = filteredReports.map((report, index) => {
+      const packData = {};
+      targetPacks.forEach((pack) => {
+        packData[pack] = 0;
+      });
+
+      productKeys.forEach((productKey) => {
+        const productData = report.quantities?.[productKey];
+        if (!productData) return;
+
+        Object.entries(productData).forEach(([volume, packs]) => {
+          Object.entries(packs).forEach(([packType, value]) => {
+            if (
+              typeof value === "number" &&
+              !packType.includes("_price") &&
+              !packType.includes("_status") &&
+              targetPacks.includes(packType)
+            ) {
+              packData[packType] += value;
+            }
+          });
+        });
+      });
+
+      return {
+        no: index + 1,
+        store_Name: report.store_Name,
+        store_Channel: report.store_Channel,
+        store_Account: report.store_Account,
+        store_Province: report.store_Province,
+        store_Area2: report.store_Area2,
+        ...packData,
+      };
+    });
+
+    setTableData(tableRows);
+
     filteredReports.forEach((report) => {
       const channel = report.store_Channel;
       const account = report.store_Account;
-      const productData = report.quantities?.[selectedProduct];
-      if (!productData) return;
 
-      Object.entries(productData).forEach(([size, volumeObj]) => {
-        if (!storeAccountSummary[account]) {
-          storeAccountSummary[account] = {};
-        }
+      productKeys.forEach((productKey) => {
+        const productData = report.quantities?.[productKey];
+        if (!productData) return;
 
-        Object.entries(volumeObj).forEach(([packType, value]) => {
-          if (
-            typeof value === "number" &&
-            value > 0 &&
-            !packType.includes("_price") &&
-            !packType.includes("_status") &&
-            targetPacks.includes(packType)
-          ) {
-            if (channel === "MT" || channel === "GT") {
-              summaryByChannel[packType][channel] += value;
-              if (!storeAccountSummary[account][packType]) {
-                storeAccountSummary[account][packType] = 0;
+        Object.entries(productData).forEach(([size, volumeObj]) => {
+          Object.entries(volumeObj).forEach(([packType, value]) => {
+            if (
+              typeof value === "number" &&
+              value > 0 &&
+              !packType.includes("_price") &&
+              !packType.includes("_status") &&
+              targetPacks.includes(packType)
+            ) {
+              if (channel === "MT" || channel === "GT") {
+                summaryByChannel[packType][channel] += value;
+
+                if (!storeAccountSummary[account]) {
+                  storeAccountSummary[account] = {};
+                }
+                if (!storeAccountSummary[account][packType]) {
+                  storeAccountSummary[account][packType] = 0;
+                }
+                storeAccountSummary[account][packType] += value;
+
+                if (channel === "MT") totalMT += value;
+                if (channel === "GT") totalGT += value;
               }
-              storeAccountSummary[account][packType] += value;
-              if (channel === "MT") totalMT += value;
-              if (channel === "GT") totalGT += value;
             }
-          }
+          });
         });
       });
     });
@@ -170,12 +220,69 @@ function DashboardPage() {
     return num.toLocaleString();
   };
 
+  const filteredTableData = tableData.filter((item) => {
+    const lower = searchText.toLowerCase();
+    return (
+      item.store_Name?.toLowerCase().includes(lower) ||
+      item.store_Province?.toLowerCase().includes(lower) ||
+      item.store_Area2?.toLowerCase().includes(lower) ||
+      item.store_Account?.toLowerCase().includes(lower)
+    );
+  });
+
+  const handleExportExcel = () => {
+    const exportData = filteredTableData.map(
+      ({
+        no,
+        store_Name,
+        store_Channel,
+        store_Account,
+        store_Province,
+        store_Area2,
+        ...packs
+      }) => ({
+        ลำดับ: no,
+        ชื่อร้าน: store_Name,
+        ช่องทาง: store_Channel,
+        Account: store_Account,
+        จังหวัด: store_Province,
+        เขต: store_Area2,
+        ...packs,
+      })
+    );
+
+    const formatDateShort = (dateStr) => {
+  const [year, month, day] = dateStr.split("-");
+  return `${year.slice(2)}${month}${day}`; // YYMMDD
+};
+
+const startFormatted = formatDateShort(startDate);
+const endFormatted = formatDateShort(endDate);
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "รายงาน");
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/octet-stream",
+    });
+    saveAs(
+      blob,
+      `รายงานยอดขาย_${startFormatted}_${endFormatted}.xlsx`
+    );
+  };
+
   return (
     <div className="p-6 bg-[#F3F9FF] min-h-screen">
       <h2 className="text-2xl font-bold mb-4 text-center text-[#005BAC]">
         เปรียบเทียบยอดขายสินค้าแยกตามขนาดและช่องทาง
       </h2>
 
+      {/* filter row */}
       <div className="mb-6 flex flex-col lg:flex-row justify-center items-center gap-4">
         <div className="flex items-center gap-2">
           <label className="text-[#005BAC] font-medium">วันที่เริ่มต้น:</label>
@@ -211,6 +318,7 @@ function DashboardPage() {
         </div>
       </div>
 
+      {/* charts */}
       <div className="flex flex-col lg:flex-row gap-6 items-center justify-center">
         <div className="lg:w-1/2 w-full h-[420px] justify-center">
           <div className="flex justify-center gap-10 text-sm font-medium mb-6">
@@ -226,12 +334,8 @@ function DashboardPage() {
             >
               <XAxis dataKey="pack" stroke="#005BAC" />
               <YAxis tickFormatter={formatNumber} stroke="#005BAC" />
-              <Tooltip
-                formatter={(value) => formatNumber(value)}
-                contentStyle={{ backgroundColor: "#ffffff", borderColor: "#005BAC" }}
-                labelStyle={{ color: "#005BAC" }}
-              />
-              <Legend wrapperStyle={{ color: "#005BAC" }} />
+              <Tooltip formatter={(value) => formatNumber(value)} />
+              <Legend />
               <Bar dataKey="MT" fill="#007BFF">
                 <LabelList dataKey="MT" position="top" formatter={formatNumber} />
               </Bar>
@@ -253,12 +357,7 @@ function DashboardPage() {
               margin={{ left: 80, right: 20 }}
               barCategoryGap="10%"
             >
-              <XAxis
-                type="number"
-                tickFormatter={formatNumber}
-                stroke="#005BAC"
-                domain={[0, "dataMax + 50"]}
-              />
+              <XAxis type="number" tickFormatter={formatNumber} stroke="#005BAC" />
               <YAxis dataKey="account" type="category" stroke="#005BAC" />
               <Tooltip formatter={(value, name) => [`${formatNumber(value)} ${name}`, name]} />
               <Legend />
@@ -271,11 +370,7 @@ function DashboardPage() {
                       fill={packColors[pack] || "#009A3E"}
                       name={pack}
                     >
-                      <LabelList
-                        dataKey={pack}
-                        position="right"
-                        formatter={(value) => formatNumber(value)}
-                      />
+                      <LabelList dataKey={pack} position="right" formatter={formatNumber} />
                     </Bar>
                   )
               )}
@@ -283,6 +378,81 @@ function DashboardPage() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* table */}
+      <div className="mt-10">
+        <h3 className="text-xl font-bold text-center text-[#005BAC] mb-4">
+          รายละเอียดรายงานตามร้านค้า
+        </h3>
+
+        {/* 🔍 ช่องค้นหา */}
+        <div className="flex justify-between items-center mb-3">
+          {/* ค้นหา */}
+          <input
+            type="text"
+            placeholder="ค้นหาชื่อร้าน / จังหวัด / เขต"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="border border-[#005BAC] px-3 py-1 rounded-md text-sm w-full max-w-sm"
+          />
+
+          {/* ปุ่ม Export */}
+          <button
+            onClick={handleExportExcel}
+            className="bg-[#005BAC] text-white px-4 py-1 rounded-md text-sm hover:bg-blue-700"
+          >
+            Export Excel
+          </button>
+        </div>
+
+
+        <div className="overflow-auto border border-[#ccc] rounded-lg">
+          <table className="min-w-full text-sm text-left text-gray-700">
+            <thead className="bg-[#005BAC] text-white">
+              <tr>
+                <th className="px-4 py-2 border text-center">#</th>
+                <th className="px-4 py-2 border text-center">ชื่อร้าน</th>
+                <th className="px-4 py-2 border text-center">ช่องทาง</th>
+                <th className="px-4 py-2 border text-center">Account</th>
+                <th className="px-4 py-2 border text-center">จังหวัด</th>
+                <th className="px-4 py-2 border text-center">เขต</th>
+                {targetPacks.map((pack) => (
+                  <th key={pack} className="px-4 py-2 border text-center">
+                    {pack}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {filteredTableData.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-4 text-gray-500">
+                    ไม่พบข้อมูลในช่วงวันที่ที่เลือก
+                  </td>
+                </tr>
+              ) : (
+                filteredTableData.map((item) => (
+                  <tr key={item.no} className="hover:bg-[#F0F8FF]">
+                    <td className="px-4 py-2 border text-center">{item.no}</td>
+                    <td className="px-4 py-2 border">{item.store_Name}</td>
+                    <td className="px-4 py-2 border text-center">{item.store_Channel}</td>
+                    <td className="px-4 py-2 border text-center">{item.store_Account}</td>
+                    <td className="px-4 py-2 border text-center">{item.store_Province}</td>
+                    <td className="px-4 py-2 border text-center">{item.store_Area2}</td>
+                    {targetPacks.map((pack) => (
+                      <td key={pack} className="px-4 py-2 border text-center">
+                        {item[pack] !== undefined ? formatNumber(item[pack]) : "-"}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   );
 }

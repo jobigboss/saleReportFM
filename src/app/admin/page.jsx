@@ -11,7 +11,6 @@ function AdminPage() {
   const router = useRouter();
   const [logoutReason, setLogoutReason] = useState("");
 
-  // อ่าน logoutReason ที่ถูกเตะออก
   useEffect(() => {
     const msg = localStorage.getItem("logout_reason");
     if (msg) {
@@ -20,7 +19,6 @@ function AdminPage() {
     }
   }, []);
 
-  // -- login function (support forceLogout)
   const doLogin = async ({ email, password, forceLogout = false }) => {
     setLoading(true);
     setError("");
@@ -43,7 +41,6 @@ function AdminPage() {
       return;
     }
 
-    // Success!
     localStorage.setItem("email", email);
     localStorage.setItem("sessionId", data.sessionId);
     localStorage.setItem("role", data.role);
@@ -51,7 +48,6 @@ function AdminPage() {
     router.replace("/admin/Menu");
   };
 
-  // -- form submit
   const handleSubmit = (e) => {
     e.preventDefault();
     const email = e.target.email.value;
@@ -59,7 +55,6 @@ function AdminPage() {
     doLogin({ email, password });
   };
 
-  // -- force logout (เตะเครื่องเก่า)
   const handleForceLogout = () => {
     if (!formCache) return;
     doLogin({ ...formCache, forceLogout: true });
@@ -80,7 +75,6 @@ function AdminPage() {
         onSubmit={handleSubmit}
         autoComplete="off"
       >
-        {/* โลโก้ Foremost */}
         <div className="flex flex-col items-center mb-1">
           <div className="h-20 w-20 rounded-full bg-[#ecd8b2] flex items-center justify-center shadow">
             <img
@@ -116,7 +110,6 @@ function AdminPage() {
         {error && (
           <div className="text-red-600 text-center">
             {error}
-            {/* Popup Force Logout */}
             {forceMode && (
               <div className="flex flex-col mt-2 gap-2">
                 <button
@@ -146,7 +139,6 @@ function AdminPage() {
         >
           {loading ? "กำลังเข้าสู่ระบบ..." : "Login"}
         </button>
-        {/* แจ้งเตือนโดนเตะออก */}
         {logoutReason && (
           <div className="mb-2 text-red-600 text-center font-bold">{logoutReason}</div>
         )}
@@ -154,5 +146,4 @@ function AdminPage() {
     </div>
   );
 }
-
 export default AdminPage;

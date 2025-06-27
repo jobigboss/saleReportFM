@@ -7,26 +7,26 @@ import crypto from "crypto";
 export async function POST(req) {
   await connectMongoDB();
   const { email, password, forceLogout } = await req.json();
-  let user = await Admin.findOne({ email, isActive: true });
+  const user = await Admin.findOne({ email, isActive: true });
   if (!user) return NextResponse.json({ error: "not found" }, { status: 401 });
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) return NextResponse.json({ error: "invalid password" }, { status: 401 });
 
-  // ยังมี session เดิม และไม่ได้ force
+  // มี session อยู่แล้ว และยังไม่ได้ force
   if (user.sessionId && !forceLogout) {
     return NextResponse.json({
       error: "active_session",
-      message: "บัญชีนี้กำลังใช้งานบนเครื่องอื่น ต้องการ force logout เครื่องเดิมหรือไม่?"
+      message: "บัญชีนี้กำลังใช้งานอยู่บนเครื่องอื่น ต้องการ force logout เครื่องเดิมไหม?",
     }, { status: 403 });
   }
 
-  // ถ้า force: เตะเครื่องเก่าออก (sessionId = null) แล้วโหลด user ใหม่
-  if (user.sessionId && forceLogout) {
+  // ถ้ามี forceLogout: เตะ session เดิมออก
+  if (forceLogout && user.sessionId) {
     user.sessionId = null;
     await user.save();
-    // reload user object อีกรอบ เพื่อให้ข้อมูลใหม่ล่าสุด
-    user = await Admin.findOne({ email, isActive: true });
+    // wait สัก 100 ms
+    await new Promise(r => setTimeout(r, 100));
   }
 
   // สร้าง session ใหม่

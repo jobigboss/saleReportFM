@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -26,33 +27,34 @@ function MenuPage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // ✅ มี useEffect แค่ตัวเดียว!
   useEffect(() => {
-  const sessionId = localStorage.getItem("sessionId");
-  const email = localStorage.getItem("email");
-  if (!sessionId || !email) {
-    router.replace("/admin");
-    return;
-  }
-  fetch("/api/admin/validate-session", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, sessionId }),
-  }).then(async res => {
-    if (!res.ok) {
-      localStorage.clear();
-      localStorage.setItem(
-        "logout_reason",
-        "บัญชีถูก force logout เนื่องจากมีการเข้าสู่ระบบจากเครื่องอื่น"
-      );
+    const sessionId = localStorage.getItem("sessionId");
+    const email = localStorage.getItem("email");
+    if (!sessionId || !email) {
       router.replace("/admin");
+      return;
     }
-  });
-}, []); // <--- empty dependency = ทำครั้งเดียว
-
-
-
-
-
+    fetch("/api/admin/validate-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, sessionId }),
+    }).then(async res => {
+      if (!res.ok) {
+        localStorage.clear();
+        localStorage.setItem(
+          "logout_reason",
+          "บัญชีถูก force logout เนื่องจากมีการเข้าสู่ระบบจากเครื่องอื่น"
+        );
+        router.replace("/admin");
+      } else {
+        const data = await res.json();
+        setRole(data.role);
+        setName(data.name);
+        setLoading(false);
+      }
+    });
+  }, []);
 
   const handleLogout = async () => {
     const email = localStorage.getItem("email");
@@ -138,3 +140,4 @@ function MenuPage() {
 }
 
 export default MenuPage;
+

@@ -11,13 +11,14 @@ function AdminPage() {
   const router = useRouter();
   const [logoutReason, setLogoutReason] = useState("");
 
-  useEffect(() => {
-    const msg = localStorage.getItem("logout_reason");
-    if (msg) {
-      setLogoutReason(msg);
-      localStorage.removeItem("logout_reason");
-    }
-  }, []);
+useEffect(() => {
+  const msg = localStorage.getItem("logout_reason");
+  if (msg) {
+    setLogoutReason(msg);
+    localStorage.removeItem("logout_reason");
+  }
+}, []);
+
 
   const doLogin = async ({ email, password, forceLogout = false }) => {
     setLoading(true);

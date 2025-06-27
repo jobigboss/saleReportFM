@@ -61,6 +61,10 @@ const packColors = {
 };
 
 function DashboardPage() {
+  // วันที่ปัจจุบัน
+  const today = new Date();
+  const todayString = today.toISOString().split("T")[0];
+
   const [reportData, setReportData] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState("sur_Omega369Gold1");
   const [chartData, setChartData] = useState([]);
@@ -71,14 +75,20 @@ function DashboardPage() {
   const [endDate, setEndDate] = useState("");
   const [searchText, setSearchText] = useState("");
 
+  // ตั้ง default วันที่ย้อนหลัง 30 วันถึงวันนี้
   useEffect(() => {
-    const today = new Date();
-    const past30 = new Date();
+    const past30 = new Date(today);
     past30.setDate(today.getDate() - 30);
     setStartDate(past30.toISOString().split("T")[0]);
-    setEndDate(today.toISOString().split("T")[0]);
-  }, []);
+    setEndDate(todayString);
+  }, [todayString]);
 
+  // Auto ปรับ endDate ถ้า startDate > endDate
+  useEffect(() => {
+    if (endDate && startDate && endDate < startDate) setEndDate(startDate);
+  }, [startDate]);
+
+  // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -92,6 +102,7 @@ function DashboardPage() {
     fetchData();
   }, []);
 
+  // Summary Chart และ Table
   useEffect(() => {
     const summaryByChannel = {};
     const storeAccountSummary = {};
@@ -252,12 +263,12 @@ function DashboardPage() {
     );
 
     const formatDateShort = (dateStr) => {
-  const [year, month, day] = dateStr.split("-");
-  return `${year.slice(2)}${month}${day}`; // YYMMDD
-};
+      const [year, month, day] = dateStr.split("-");
+      return `${year.slice(2)}${month}${day}`; // YYMMDD
+    };
 
-const startFormatted = formatDateShort(startDate);
-const endFormatted = formatDateShort(endDate);
+    const startFormatted = formatDateShort(startDate);
+    const endFormatted = formatDateShort(endDate);
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
@@ -289,6 +300,7 @@ const endFormatted = formatDateShort(endDate);
           <input
             type="date"
             value={startDate}
+            max={todayString}
             onChange={(e) => setStartDate(e.target.value)}
             className="border border-[#005BAC] px-2 py-1 rounded-md"
           />
@@ -298,6 +310,8 @@ const endFormatted = formatDateShort(endDate);
           <input
             type="date"
             value={endDate}
+            min={startDate}
+            max={todayString}
             onChange={(e) => setEndDate(e.target.value)}
             className="border border-[#005BAC] px-2 py-1 rounded-md"
           />
@@ -404,7 +418,6 @@ const endFormatted = formatDateShort(endDate);
             Export Excel
           </button>
         </div>
-
 
         <div className="overflow-auto border border-[#ccc] rounded-lg">
           <table className="min-w-full text-sm text-left text-gray-700">

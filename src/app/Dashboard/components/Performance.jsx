@@ -31,16 +31,30 @@ const CustomTooltipPie = ({ active, payload }) => {
   return null;
 };
 
+// ========== ฟังก์ชันนับเฉพาะเสาร์-อาทิตย์ ==========
+const countWeekendDays = (start, end) => {
+  let count = 0;
+  const current = new Date(start);
+  while (current <= end) {
+    const day = current.getDay();
+    if (day === 0 || day === 6) count++; // 0=Sunday, 6=Saturday
+    current.setDate(current.getDate() + 1);
+  }
+  return count;
+};
+
 function PerformancePage() {
   const today = new Date();
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   const [data, setData] = useState([]);
 
-  const numberOfDays = Math.max(
-    1,
-    Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1
-  );
+  // ✅ จำนวนวัน: เฉพาะเสาร์-อาทิตย์
+  const numberOfDays = countWeekendDays(startDate, endDate);
+
+    useEffect(() => {
+    if (endDate < startDate) setEndDate(startDate);
+  }, [startDate]);
 
   useEffect(() => {
     if (startDate && endDate) {
@@ -52,6 +66,7 @@ function PerformancePage() {
     }
   }, [startDate, endDate]);
 
+  // === สรุปประเภทกิจกรรม (Pie) ===
   const cheerTypeCounts = data.reduce((acc, cur) => {
     const key = cur.report_cheerType || "ไม่ระบุ";
     acc[key] = (acc[key] || 0) + 1;
@@ -74,6 +89,7 @@ function PerformancePage() {
     (item) => item.report_cheerType === "เชียร์ขาย & ชงชิม"
   ).length;
 
+  // ✅ ใช้ numberOfDays (เฉพาะเสาร์-อาทิตย์) คูณ storeCount
   const target = numberOfDays * storeCount * 180;
   const conversionRate = totalCupServe
     ? ((totalBillsSold / totalCupServe) * 100).toFixed(1)
@@ -95,32 +111,53 @@ function PerformancePage() {
     },
   ];
 
+  // ====== รวมข้อมูล Switch Brand ทุกแบรนด์ ======
+  const brandTotals = {};
+  data.forEach((item) => {
+    const brands = item.report_ChangeBrands || {};
+    Object.entries(brands).forEach(([brand, val]) => {
+      if (typeof val === "number" && !isNaN(val)) {
+        brandTotals[brand] = (brandTotals[brand] || 0) + val;
+      }
+    });
+  });
+  const brandChartData = Object.entries(brandTotals).map(([name, value]) => ({
+    name,
+    value,
+  }));
+  const totalSwitch = brandChartData.reduce((sum, item) => sum + item.value, 0);
+
   return (
     <div className="p-4">
+      {/* Date Picker */}
       <div className="flex flex-wrap gap-4 mb-6 items-center">
-        <label className="font-medium">จากวันที่:</label>
-        <DatePicker
-          selected={startDate}
-          onChange={(date) => setStartDate(date)}
-          selectsStart
-          startDate={startDate}
-          endDate={endDate}
-          dateFormat="dd/MM/yyyy"
-          className="border rounded px-2 py-1"
-        />
-        <label className="font-medium">ถึงวันที่:</label>
-        <DatePicker
-          selected={endDate}
-          onChange={(date) => setEndDate(date)}
-          selectsEnd
-          startDate={startDate}
-          endDate={endDate}
-          minDate={startDate}
-          dateFormat="dd/MM/yyyy"
-          className="border rounded px-2 py-1"
-        />
-      </div>
+  <label className="font-medium">จากวันที่:</label>
+  <DatePicker
+    selected={startDate}
+    onChange={(date) => setStartDate(date)}
+    selectsStart
+    startDate={startDate}
+    endDate={endDate}
+    maxDate={today}            // ✅ ห้ามเลือกวันอนาคต
+    dateFormat="dd/MM/yyyy"
+    className="border rounded px-2 py-1"
+  />
+  <label className="font-medium">ถึงวันที่:</label>
+  <DatePicker
+    selected={endDate}
+    onChange={(date) => setEndDate(date)}
+    selectsEnd
+    startDate={startDate}
+    endDate={endDate}
+    minDate={startDate}        // ✅ ห้ามเลือกก่อน startDate
+    maxDate={today}            // ✅ ห้ามเลือกวันอนาคต
+    dateFormat="dd/MM/yyyy"
+    className="border rounded px-2 py-1"
+  />
+</div>
 
+
+      {/* กราฟประเภทกิจกรรม (Pie) + สรุปเป้าชงชิม (Bar) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white p-4 rounded-2xl shadow">
           <h3 className="text-lg font-semibold mb-2 text-[#005BAC]">ประเภทกิจกรรม</h3>
@@ -208,8 +245,9 @@ function PerformancePage() {
           <p className="text-sm text-gray-600">
             ร้านที่ทำกิจกรรม "เชียร์ขาย & ชงชิม": <span className="text-[#005BAC] font-semibold">{storeCount.toLocaleString("th-TH")} ร้าน</span>
           </p>
+          {/* ✅ ใช้ข้อความนี้ */}
           <p className="text-sm text-gray-600 mt-1">
-            จำนวนวัน: <span className="text-[#005BAC] font-semibold">{numberOfDays} วัน</span>
+            จำนวนวัน (เฉพาะเสาร์-อาทิตย์): <span className="text-[#005BAC] font-semibold">{numberOfDays} วัน</span>
           </p>
           <p className="text-sm text-gray-600 mt-1">
             เป้าหมายถ้วยชิมทั้งหมด (180 แก้ว/ร้าน/วัน): <span className="text-[#005BAC] font-semibold">{target.toLocaleString("th-TH")} แก้ว</span>
@@ -219,51 +257,84 @@ function PerformancePage() {
           </p>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
-        <div className="bg-white p-4 rounded-2xl shadow">
-         <h3 className="text-lg font-semibold mb-2 text-[#005BAC]">เปรียบเทียบ Cup Serve กับ บิลขาย</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={dataCompareServeVsBills} margin={{ top: 40 }}>
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip
-              formatter={(value, name) => [
-                `${value.toLocaleString("th-TH")}`,
-                name === "CupServe" ? "Cup Serve" : "Bills Sold",
-              ]}
-            />
-            <Legend />
-            <Bar dataKey="CupServe" fill="#00B9F1" name="Cup Serve">
-              <LabelList
-                dataKey="CupServe"
-                position="top"
-                formatter={(value) => `${value.toLocaleString("th-TH")} แก้ว`}
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 items-stretch">
+        {/* กราฟเปรียบเทียบ Cup Serve กับ บิลขาย */}
+        <div className="bg-white p-4 rounded-2xl shadow h-full flex flex-col">
+          <h3 className="text-lg font-semibold mb-2 text-[#005BAC]">
+            เปรียบเทียบ Bills Sold กับ Cup Serve
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={dataCompareServeVsBills} margin={{ top: 40 }}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                formatter={(value, name) => [
+                  `${value.toLocaleString("th-TH")}`,
+                  name === "CupServe" ? "Cup Serve" : "Bills Sold",
+                ]}
               />
-            </Bar>
-            <Bar
-              dataKey="BillsSold"
-              name="Bills Sold"
-              fill={conversionRate >= 20 ? "#28a745" : "#FF8C42"}
-            >
-              <LabelList
+              <Legend />
+              <Bar
                 dataKey="BillsSold"
-                position="top"
-                formatter={(value) => `${value.toLocaleString("th-TH")} บิล`}
-              />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+                name="Bills Sold"
+                fill={conversionRate >= 20 ? "#28a745" : "#FF8C42"}
+              >
+                <LabelList
+                  dataKey="BillsSold"
+                  position="top"
+                  formatter={(value) => `${value.toLocaleString("th-TH")} บิล`}
+                />
+              </Bar>
+              <Bar dataKey="CupServe" fill="#00B9F1" name="Cup Serve">
+                <LabelList
+                  dataKey="CupServe"
+                  position="top"
+                  formatter={(value) => `${value.toLocaleString("th-TH")} แก้ว`}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
           <div className="mt-4 text-sm text-gray-600">
-          อัตราแปลง (Conversion Rate): {" "}
-          <span className={`font-semibold ${conversionRate >= 20 ? "text-green-600" : "text-orange-500"}`}>
-            {conversionRate}% {conversionRate >= 20 ? "✅ ดี" : "⚠ ต่ำ"}
-          </span>
-        </div>
+            อัตราแปลง (Conversion Rate):{" "}
+            <span className={`font-semibold ${conversionRate >= 20 ? "text-green-600" : "text-orange-500"}`}>
+              {conversionRate}% {conversionRate >= 20 ? "✅ ดี" : "⚠ ต่ำ"}
+            </span>
+          </div>
         </div>
 
+        {/* กราฟเปรียบเทียบ Switch Brand */}
+        <div className="bg-white p-4 rounded-2xl shadow h-full flex flex-col">
+          <h3 className="text-lg font-semibold mb-2 text-[#005BAC]">
+            เปรียบเทียบจำนวนลูกค้าที่เปลี่ยนแบรนด์ (Switch Brand)
+          </h3>
+          <div className="mb-2">
+            <span className="inline-block bg-[#E0F4FF] px-5 py-2 rounded-xl text-[#00B9F1] font-bold text-base shadow">
+              รวมทั้งหมด: {totalSwitch.toLocaleString("th-TH")} คน
+            </span>
+          </div>
+          {brandChartData.length === 0 ? (
+            <div className="text-center text-gray-400 py-8">
+              ไม่มีข้อมูลเปลี่ยนแบรนด์ในช่วงวันที่เลือก
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={brandChartData}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip formatter={(value) => value.toLocaleString("th-TH") + " คน"} />
+                <Bar dataKey="value" fill="#FF8C42" name="จำนวนที่เปลี่ยนแบรนด์">
+                  <LabelList
+                    dataKey="value"
+                    position="top"
+                    formatter={(value) => `${value.toLocaleString("th-TH")} คน`}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
       </div>
-
     </div>
   );
 }

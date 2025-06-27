@@ -47,7 +47,8 @@ function MenuPage() {
       router.replace("/admin");
     }
   });
-}, [router]);
+}, []); // <--- empty dependency = ทำครั้งเดียว
+
 
 
 

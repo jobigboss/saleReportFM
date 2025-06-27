@@ -10,8 +10,8 @@ export async function POST(req) {
 
   console.log("validate-session: client=", sessionId, "db=", user?.sessionId); // <--- เพิ่ม log
 
-  if (!user || !user.sessionId || user.sessionId !== sessionId) {
-    return NextResponse.json({ valid: false }, { status: 401 });
-  }
-  return NextResponse.json({ valid: true, name: user.name, role: user.role });
+if (!user || !user.sessionId || user.sessionId !== sessionId) {
+  return NextResponse.json({ valid: false }, { status: 401 });
+}
+ return NextResponse.json({ valid: true, name: user.name, role: user.role });
 }

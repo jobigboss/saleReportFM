@@ -20,30 +20,23 @@ useEffect(() => {
 }, []);
 
 
-  const doLogin = async ({ email, password, forceLogout = false }) => {
+  const doLogin = async ({ email, password }) => {
   setLoading(true);
   setError("");
   const res = await fetch("/api/admin/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, forceLogout }),
+    body: JSON.stringify({ email, password }),
   });
   const data = await res.json();
   setLoading(false);
 
-  if (res.status === 403 && data.error === "active_session") {
-    setForceMode(true);
-    setFormCache({ email, password });
-    setError(data.message || "บัญชีนี้กำลังใช้งานอยู่บนเครื่องอื่น");
-    return;
-  }
   if (!res.ok) {
     setError(data.error || "Login failed");
     return;
   }
 
-  // สำคัญ!! clear แล้ว set sessionId ที่ response ใหม่ทุกครั้ง
-  localStorage.clear(); // <---- อยู่ตรงนี้
+  // set session ใน localStorage
   localStorage.setItem("email", email);
   localStorage.setItem("sessionId", data.sessionId);
   localStorage.setItem("role", data.role);
@@ -51,6 +44,7 @@ useEffect(() => {
 
   router.replace("/admin/Menu");
 };
+
 
 
   const handleSubmit = (e) => {

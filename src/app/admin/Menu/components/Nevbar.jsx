@@ -40,7 +40,7 @@ function NavBar({ logo, name = "Bigboss", onLogout }) {
             cursor: "pointer"
           }}
         >
-          {name}
+          <span className="truncate block max-w-[110px]">{name}</span>
           <svg
             className={`w-4 h-4 ml-1 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
             fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"

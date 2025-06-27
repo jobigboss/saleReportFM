@@ -6,65 +6,46 @@ export default function AdminPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [forceMode, setForceMode] = useState(false);
-  const [formCache, setFormCache] = useState(null);
   const [logoutReason, setLogoutReason] = useState("");
   const router = useRouter();
 
-useEffect(() => {
-  const msg = localStorage.getItem("logout_reason");
-  if (msg) {
-    setLogoutReason(msg);
-    localStorage.removeItem("logout_reason");
-  }
-}, []);
-
+  useEffect(() => {
+    const msg = localStorage.getItem("logout_reason");
+    if (msg) {
+      setLogoutReason(msg);
+      localStorage.removeItem("logout_reason");
+    }
+  }, []);
 
   const doLogin = async ({ email, password }) => {
-  setLoading(true);
-  setError("");
-  const res = await fetch("/api/admin/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  const data = await res.json();
-  setLoading(false);
+    setLoading(true);
+    setError("");
+    const res = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    setLoading(false);
 
-  if (!res.ok) {
-    setError(data.error || "Login failed");
-    return;
-  }
+    if (!res.ok) {
+      setError(data.error || "Login failed");
+      return;
+    }
 
-  // set session ใน localStorage
-  localStorage.setItem("email", email);
-  localStorage.setItem("sessionId", data.sessionId);
-  localStorage.setItem("role", data.role);
-  localStorage.setItem("name", data.name);
+    localStorage.setItem("email", email);
+    localStorage.setItem("sessionId", data.sessionId);
+    localStorage.setItem("role", data.role);
+    localStorage.setItem("name", data.name);
 
-  router.replace("/admin/Menu");
-};
-
-
+    router.replace("/admin/Menu");
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const email = e.target.email.value;
     const password = e.target.password.value;
     doLogin({ email, password });
-  };
-
-  const handleForceLogout = () => {
-    if (!formCache) return;
-    doLogin({ ...formCache, forceLogout: true });
-    setForceMode(false);
-    setFormCache(null);
-  };
-
-  const handleCancel = () => {
-    setForceMode(false);
-    setFormCache(null);
-    setError("");
   };
 
   return (
@@ -110,38 +91,18 @@ useEffect(() => {
         {error && (
           <div className="text-red-600 text-center">
             {error}
-            {forceMode && (
-              <div className="flex flex-col mt-2 gap-2">
-                <button
-                  type="button"
-                  className="bg-[#e36e66] hover:bg-[#b94b44] text-white rounded px-4 py-1 font-bold"
-                  onClick={handleForceLogout}
-                  disabled={loading}
-                >
-                  ออกจากระบบเครื่องเดิมและเข้าสู่ระบบนี้
-                </button>
-                <button
-                  type="button"
-                  className="underline text-xs text-gray-600 hover:text-black"
-                  onClick={handleCancel}
-                  disabled={loading}
-                >
-                  ยกเลิก
-                </button>
-              </div>
-            )}
           </div>
         )}
         <button
           type="submit"
-          disabled={loading || forceMode}
+          disabled={loading}
           className="w-full py-2 rounded-lg bg-[#232321] text-white font-bold mt-2 hover:bg-[#323220] transition"
         >
           {loading ? "กำลังเข้าสู่ระบบ..." : "Login"}
         </button>
-          {logoutReason && (
-            <div className="mb-2 text-red-600 text-center font-bold">{logoutReason}</div>
-          )}
+        {logoutReason && (
+          <div className="mb-2 text-red-600 text-center font-bold">{logoutReason}</div>
+        )}
       </form>
     </div>
   );

@@ -10,7 +10,7 @@ function AdminPage() {
   const [formCache, setFormCache] = useState(null);
   const router = useRouter();
 
-  // --- ส่ง login (option: forceLogout)
+  // -- login function (support forceLogout)
   const doLogin = async ({ email, password, forceLogout = false }) => {
     setLoading(true);
     setError("");
@@ -41,7 +41,7 @@ function AdminPage() {
     router.replace("/admin/Menu");
   };
 
-  // -- submit event
+  // -- form submit
   const handleSubmit = (e) => {
     e.preventDefault();
     const email = e.target.email.value;
@@ -49,7 +49,7 @@ function AdminPage() {
     doLogin({ email, password });
   };
 
-  // -- ยืนยัน force logout
+  // -- force logout
   const handleForceLogout = () => {
     if (!formCache) return;
     doLogin({ ...formCache, forceLogout: true });
@@ -57,7 +57,6 @@ function AdminPage() {
     setFormCache(null);
   };
 
-  // -- ยกเลิก
   const handleCancel = () => {
     setForceMode(false);
     setFormCache(null);
@@ -107,7 +106,7 @@ function AdminPage() {
         {error && (
           <div className="text-red-600 text-center">
             {error}
-            {/* ถ้าเป็น forceMode ให้ปุ่มกด confirm/ยกเลิก */}
+            {/* Force confirm / cancel */}
             {forceMode && (
               <div className="flex flex-col mt-2 gap-2">
                 <button

@@ -6,7 +6,7 @@ import crypto from "crypto";
 
 export async function POST(req) {
   await connectMongoDB();
-  const { email, password, forceLogout } = await req.json(); // เพิ่ม forceLogout
+  const { email, password, forceLogout } = await req.json();
 
   const user = await Admin.findOne({ email, isActive: true });
   if (!user) return NextResponse.json({ error: "not found" }, { status: 401 });
@@ -14,7 +14,7 @@ export async function POST(req) {
   const match = await bcrypt.compare(password, user.password);
   if (!match) return NextResponse.json({ error: "invalid password" }, { status: 401 });
 
-  // มี session อยู่แล้ว และไม่ได้ force logout
+  // ถ้ามี sessionId แล้ว และไม่ได้ forceLogout
   if (user.sessionId && !forceLogout) {
     return NextResponse.json({
       error: "active_session",
@@ -22,7 +22,7 @@ export async function POST(req) {
     }, { status: 403 });
   }
 
-  // --- generate session id ---
+  // --- generate session id ใหม่ ---
   const sessionId = crypto.randomUUID();
   user.sessionId = sessionId;
   await user.save();

@@ -15,7 +15,6 @@ const BG_MENU = "#282828";
 const BG_MENU_HOVER = "#37322b";
 const BORDER_MENU_HOVER = "#e5c77e";
 
-// --- ฟังก์ชัน Filter Menu ตาม role ---
 function getMenuByRole(role) {
   const keys = ROLE_MENUS[role] || [];
   return MENU_LIST.filter(menu => keys.includes(menu.key));
@@ -25,29 +24,53 @@ function MenuPage() {
   const router = useRouter();
   const [role, setRole] = useState(null);
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // Auth Guard: check localStorage
   useEffect(() => {
-    // ตรวจ session ทุกครั้งที่เข้า
     const sessionId = localStorage.getItem("sessionId");
-    const userRole = localStorage.getItem("role");
-    const userName = localStorage.getItem("name");
-
-    if (!sessionId || !userRole) {
+    const email = localStorage.getItem("email");
+    if (!sessionId || !email) {
       router.replace("/admin");
-    } else {
-      setRole(userRole);
-      setName(userName || "");
+      return;
     }
+    // validate session server
+    fetch("/api/admin/validate-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, sessionId }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.valid) {
+          localStorage.clear();
+          router.replace("/admin");
+        } else {
+          setRole(localStorage.getItem("role"));
+          setName(localStorage.getItem("name"));
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        localStorage.clear();
+        router.replace("/admin");
+        setLoading(false);
+      });
   }, [router]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const email = localStorage.getItem("email");
+    if (email) {
+      await fetch("/api/admin/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+    }
     localStorage.clear();
     router.replace("/admin");
   };
 
-  if (!role) {
-    // Loading หรือ redirect ยังไม่เสร็จ
+  if (loading || !role) {
     return (
       <div className="h-screen flex items-center justify-center text-xl text-[#b6b6a2] bg-[#232321]">
         Loading...
@@ -58,10 +81,7 @@ function MenuPage() {
   const menus = getMenuByRole(role);
 
   return (
-    <div
-      className="min-h-screen w-full"
-      style={{ background: BG_MAIN, minHeight: "100dvh" }}
-    >
+    <div className="min-h-screen w-full" style={{ background: BG_MAIN, minHeight: "100dvh" }}>
       <NavBar
         logo="https://www.foremostthailand.com/wp-content/uploads/2022/03/footer-icon_foremost-e1648914092691.png"
         name={name}

@@ -15,37 +15,61 @@ export default function MenuPage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // ✅ จุดสำคัญ: เพิ่ม useEffect นี้
   useEffect(() => {
-  const sessionId = localStorage.getItem("sessionId");
-  const email = localStorage.getItem("email");
-  console.log("LocalStorage sessionId:", sessionId); // <<<
-  if (!sessionId || !email) {
-    router.replace("/admin");
-    return;
-  }
-  fetch("/api/admin/validate-session", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, sessionId }),
-  }).then(async res => {
-    if (!res.ok) {
-      localStorage.clear();
-      localStorage.setItem(
-        "logout_reason",
-        "บัญชีถูก force logout เนื่องจากมีการเข้าสู่ระบบจากเครื่องอื่น"
-      );
-      router.replace("/admin");
-    } else {
-      const data = await res.json();
-      setRole(data.role);
-      setName(data.name);
-      setLoading(false);
-      console.log("API validate-session (OK):", data); // <<<
-    }
-  });
-}, []);
+    let interval = null;
 
+    const checkSession = () => {
+      const sessionId = localStorage.getItem("sessionId");
+      const email = localStorage.getItem("email");
+      if (!sessionId || !email) {
+        router.replace("/admin");
+        return;
+      }
+      fetch("/api/admin/validate-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, sessionId }),
+      }).then(async res => {
+        if (!res.ok) {
+          // ✅ set เหตุผลสำหรับแจ้งเตือนในหน้า login
+          localStorage.setItem(
+            "logout_reason",
+            "บัญชีถูก force logout เนื่องจากมีการเข้าสู่ระบบจากเครื่องอื่น"
+          );
+          // เคลียร์ข้อมูล session
+          localStorage.removeItem("sessionId");
+          localStorage.removeItem("role");
+          localStorage.removeItem("email");
+          localStorage.removeItem("name");
+          router.replace("/admin");
+        } else {
+          const data = await res.json();
+          setRole(data.role);
+          setName(data.name);
+          setLoading(false);
+        }
+      });
+    };
 
+    checkSession(); // เช็คตอน mount ทันที
+    interval = setInterval(checkSession, 8000); // เช็คทุก 8 วิ (ปรับตามที่เหมาะ)
+
+    // sync ทุก tab เมื่อโดน kick (เช่น force logout)
+    const storageListener = (e) => {
+      if (e.key === "sessionId") {
+        checkSession();
+      }
+    };
+    window.addEventListener("storage", storageListener);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("storage", storageListener);
+    };
+  }, [router]);
+
+  // handle logout ปกติ
   const handleLogout = async () => {
     const email = localStorage.getItem("email");
     if (email) {
@@ -55,7 +79,10 @@ export default function MenuPage() {
         body: JSON.stringify({ email }),
       });
     }
-    localStorage.clear();
+    localStorage.removeItem("sessionId");
+    localStorage.removeItem("role");
+    localStorage.removeItem("email");
+    localStorage.removeItem("name");
     router.replace("/admin");
   };
 

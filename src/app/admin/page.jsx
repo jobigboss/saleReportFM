@@ -11,13 +11,14 @@ export default function AdminPage() {
   const [logoutReason, setLogoutReason] = useState("");
   const router = useRouter();
 
-  useEffect(() => {
-    const msg = localStorage.getItem("logout_reason");
-    if (msg) {
-      setLogoutReason(msg);
-      localStorage.removeItem("logout_reason");
-    }
-  }, []);
+useEffect(() => {
+  const msg = localStorage.getItem("logout_reason");
+  if (msg) {
+    setLogoutReason(msg);
+    localStorage.removeItem("logout_reason");
+  }
+}, []);
+
 
   const doLogin = async ({ email, password, forceLogout = false }) => {
   setLoading(true);
@@ -144,9 +145,9 @@ export default function AdminPage() {
         >
           {loading ? "กำลังเข้าสู่ระบบ..." : "Login"}
         </button>
-        {logoutReason && (
-          <div className="mb-2 text-red-600 text-center font-bold">{logoutReason}</div>
-        )}
+          {logoutReason && (
+            <div className="mb-2 text-red-600 text-center font-bold">{logoutReason}</div>
+          )}
       </form>
     </div>
   );

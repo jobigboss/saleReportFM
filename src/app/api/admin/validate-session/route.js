@@ -8,10 +8,10 @@ export async function POST(req) {
   const { email, sessionId } = await req.json();
   const user = await Admin.findOne({ email, isActive: true });
 
-  console.log("validate-session: client=", sessionId, "db=", user?.sessionId); // <--- เพิ่ม log
+  console.log("validate-session: client=", sessionId, "db=", user?.sessionId);
 
-if (!user || !user.sessionId || user.sessionId !== sessionId) {
-  return NextResponse.json({ valid: false }, { status: 401 });
-}
- return NextResponse.json({ valid: true, name: user.name, role: user.role });
+  if (!user || !user.sessionId || user.sessionId !== sessionId) {
+    return NextResponse.json({ valid: false }, { status: 401 });
+  }
+  return NextResponse.json({ valid: true, name: user.name, role: user.role });
 }

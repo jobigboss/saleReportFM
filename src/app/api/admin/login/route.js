@@ -7,22 +7,30 @@ import crypto from "crypto";
 export async function POST(req) {
   await connectMongoDB();
   const { email, password, forceLogout } = await req.json();
-
   const user = await Admin.findOne({ email, isActive: true });
   if (!user) return NextResponse.json({ error: "not found" }, { status: 401 });
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) return NextResponse.json({ error: "invalid password" }, { status: 401 });
 
-  // ถ้ามี sessionId อยู่ และไม่ได้ force
+  // ตรวจสอบ sessionId
   if (user.sessionId && !forceLogout) {
+    // เซ็ต sessionId = null ก่อนแจ้งเตือน (เตะเครื่องเก่าออกไปแล้ว)
+    // (ถ้าอยากให้เตะทันที, ย้ายไปตรง forceLogout ก็ได้)
     return NextResponse.json({
       error: "active_session",
-      message: "บัญชีนี้กำลังใช้งานอยู่บนเครื่องอื่น ต้องการ force logout เครื่องเดิมไหม?",
+      message: "บัญชีนี้กำลังใช้งานบนเครื่องอื่น ต้องการ force logout เครื่องเดิมหรือไม่?"
     }, { status: 403 });
   }
 
-  // force หรือไม่มี session → login ให้
+  // ถ้า forceLogout (user.confirm กดออกจากเครื่องเก่า) → ให้ลบ sessionId เดิมก่อน
+  if (user.sessionId && forceLogout) {
+    user.sessionId = null;
+    await user.save();
+    // รอตรงนี้สัก 100-300 ms เผื่อ async (จริงๆไม่จำเป็นถ้า DB เร็ว)
+  }
+
+  // สร้าง session ใหม่
   const sessionId = crypto.randomUUID();
   user.sessionId = sessionId;
   await user.save();

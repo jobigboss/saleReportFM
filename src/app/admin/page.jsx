@@ -42,7 +42,7 @@ export default function AdminPage() {
   }
 
   // สำคัญ!! clear แล้ว set sessionId ที่ response ใหม่ทุกครั้ง
-  localStorage.clear();
+  localStorage.clear(); // <---- อยู่ตรงนี้
   localStorage.setItem("email", email);
   localStorage.setItem("sessionId", data.sessionId);
   localStorage.setItem("role", data.role);

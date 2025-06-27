@@ -37,27 +37,15 @@ function MenuPage() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, sessionId }),
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (!data.valid) {
-        localStorage.clear();
-        // แจ้งสาเหตุบนหน้า login
-        localStorage.setItem("logout_reason", "บัญชีถูก force logout เนื่องจากมีการเข้าสู่ระบบจากเครื่องอื่น");
-        router.replace("/admin");
-      } else {
-        setRole(localStorage.getItem("role"));
-        setName(localStorage.getItem("name"));
-      }
-      setLoading(false);
-    })
-    .catch(() => {
+  }).then(async res => {
+    if (!res.ok) {
       localStorage.clear();
-      localStorage.setItem("logout_reason", "Session หมดอายุหรือไม่ถูกต้อง");
+      localStorage.setItem("logout_reason", "บัญชีถูก force logout เนื่องจากมีการเข้าสู่ระบบจากเครื่องอื่น");
       router.replace("/admin");
-      setLoading(false);
-    });
+    }
+  });
 }, [router]);
+
 
 
   const handleLogout = async () => {

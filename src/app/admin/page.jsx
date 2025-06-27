@@ -12,13 +12,15 @@ function AdminPage() {
   const router = useRouter();
 
   // Load logoutReason จาก localStorage (ถ้ามี)
-  useEffect(() => {
-    const msg = localStorage.getItem("logout_reason");
-    if (msg) {
-      setLogoutReason(msg);
-      localStorage.removeItem("logout_reason");
-    }
-  }, []);
+// โค้ดในหน้า login
+useEffect(() => {
+  const msg = localStorage.getItem("logout_reason");
+  if (msg) {
+    setLogoutReason(msg);
+    localStorage.removeItem("logout_reason");
+  }
+}, []);
+
 
   // -- login function (support forceLogout)
   const doLogin = async ({ email, password, forceLogout = false }) => {

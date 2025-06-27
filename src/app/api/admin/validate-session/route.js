@@ -1,0 +1,18 @@
+// api/admin/validate-session
+import { connectMongoDB } from '../../../../../lib/mongodb';
+import Admin from '../../../../../models/sale_Report_Adimit';
+import { NextResponse } from "next/server";
+
+// POST: รับ { email, sessionId } จาก client
+export async function POST(req) {
+  await connectMongoDB();
+  const { email, sessionId } = await req.json();
+  const user = await Admin.findOne({ email, isActive: true });
+
+  if (!user || !user.sessionId || user.sessionId !== sessionId) {
+    return NextResponse.json({ valid: false }, { status: 401 });
+  }
+
+  // valid
+  return NextResponse.json({ valid: true, name: user.name, role: user.role });
+}

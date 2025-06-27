@@ -27,3 +27,31 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
+
+// useSessionGuard.js
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+export default function useSessionGuard() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const sessionId = localStorage.getItem("sessionId");
+    const email = localStorage.getItem("email");
+    if (!sessionId || !email) {
+      router.replace("/admin");
+      return;
+    }
+    fetch("/api/admin/validate-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, sessionId }),
+    }).then(async res => {
+      if (!res.ok) {
+        localStorage.clear();
+        router.replace("/admin");
+      }
+    });
+  }, []);
+}

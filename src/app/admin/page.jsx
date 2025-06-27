@@ -6,35 +6,52 @@ function AdminPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [pendingForce, setPendingForce] = useState(false); // modal หรือ state แจ้งเตือน
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [pendingPassword, setPendingPassword] = useState("");
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // กด submit login
+  const handleSubmit = async (e, forceLogout = false) => {
+    e && e.preventDefault();
     setLoading(true);
     setError("");
-    const email = e.target.email.value;
-    const password = e.target.password.value;
+    const email = e ? e.target.email.value : pendingEmail;
+    const password = e ? e.target.password.value : pendingPassword;
 
     const res = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, forceLogout }),
     });
     const data = await res.json();
 
     if (!res.ok) {
+      if (data.error === "active_session") {
+        // ถ้าติด active session
+        setPendingForce(true);
+        setPendingEmail(email);
+        setPendingPassword(password);
+        setLoading(false);
+        return;
+      }
       setError(data.error || "Login failed");
       setLoading(false);
       return;
     }
 
-    // บันทึก session info
+    // Success: Save session
+    localStorage.setItem("email", email);
     localStorage.setItem("sessionId", data.sessionId);
     localStorage.setItem("role", data.role);
     localStorage.setItem("name", data.name);
-
-    // ไป Menu
     router.replace("/admin/Menu");
+  };
+
+  // ยืนยันออกจากระบบเครื่องเก่า
+  const handleForceLogout = () => {
+    setPendingForce(false);
+    handleSubmit(null, true); // ส่ง forceLogout=true
   };
 
   return (
@@ -43,16 +60,8 @@ function AdminPage() {
         className="w-full max-w-sm bg-white rounded-xl shadow-xl p-8 space-y-6 flex flex-col items-center"
         onSubmit={handleSubmit}
       >
-        {/* โลโก้ Foremost */}
-        <div className="flex flex-col items-center mb-1">
-          <div className="h-20 w-20 rounded-full bg-[#ecd8b2] flex items-center justify-center shadow">
-            <img
-              src="https://www.foremostthailand.com/wp-content/uploads/2022/03/footer-icon_foremost-e1648914092691.png"
-              alt="Foremost Logo"
-              className="h-15 w-15 object-contain"
-            />
-          </div>
-        </div>
+        {/* logo & ... เหมือนเดิม */}
+        {/* ... */}
         <h2 className="text-2xl font-bold text-center mb-2 text-[#432]">Admin Login</h2>
         <div className="w-full">
           <label className="block mb-1 text-[#432]">Email</label>
@@ -85,6 +94,27 @@ function AdminPage() {
           {loading ? "กำลังเข้าสู่ระบบ..." : "Login"}
         </button>
       </form>
+
+      {/* Modal แจ้งเตือนซ้อน session */}
+      {pendingForce && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-xl p-8 flex flex-col items-center">
+            <div className="text-lg mb-4 text-[#c93] font-bold">
+              บัญชีนี้กำลังใช้งานอยู่บนเครื่องอื่น<br />ต้องการออกจากระบบเครื่องเก่าและเข้าสู่ระบบที่นี่หรือไม่?
+            </div>
+            <div className="flex gap-3 mt-2">
+              <button
+                className="px-4 py-2 rounded-lg bg-[#e45757] text-white font-bold"
+                onClick={() => setPendingForce(false)}
+              >ยกเลิก</button>
+              <button
+                className="px-4 py-2 rounded-lg bg-[#232321] text-white font-bold"
+                onClick={handleForceLogout}
+              >ออกจากเครื่องเก่าและเข้าสู่ระบบ</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

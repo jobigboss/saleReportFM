@@ -28,25 +28,31 @@ function MenuPage() {
 
   // Auth Guard: check localStorage
   useEffect(() => {
-    const sessionId = typeof window !== "undefined" ? localStorage.getItem("sessionId") : null;
-    const role = typeof window !== "undefined" ? localStorage.getItem("role") : null;
-    const name = typeof window !== "undefined" ? localStorage.getItem("name") : "";
+    // ตรวจ session ทุกครั้งที่เข้า
+    const sessionId = localStorage.getItem("sessionId");
+    const userRole = localStorage.getItem("role");
+    const userName = localStorage.getItem("name");
 
-    if (!sessionId || !role) {
-      router.replace("/admin"); // redirect ถ้ายังไม่ได้ login
+    if (!sessionId || !userRole) {
+      router.replace("/admin");
     } else {
-      setRole(role);
-      setName(name);
+      setRole(userRole);
+      setName(userName || "");
     }
   }, [router]);
 
   const handleLogout = () => {
     localStorage.clear();
-    router.replace("/admin"); // logout แล้วกลับไปหน้า login
+    router.replace("/admin");
   };
 
   if (!role) {
-    return <div className="h-screen flex items-center justify-center text-xl">Loading...</div>;
+    // Loading หรือ redirect ยังไม่เสร็จ
+    return (
+      <div className="h-screen flex items-center justify-center text-xl text-[#b6b6a2] bg-[#232321]">
+        Loading...
+      </div>
+    );
   }
 
   const menus = getMenuByRole(role);
@@ -54,19 +60,14 @@ function MenuPage() {
   return (
     <div
       className="min-h-screen w-full"
-      style={{
-        background: BG_MAIN,
-        minHeight: "100dvh",
-      }}
+      style={{ background: BG_MAIN, minHeight: "100dvh" }}
     >
-      {/* NavBar */}
       <NavBar
         logo="https://www.foremostthailand.com/wp-content/uploads/2022/03/footer-icon_foremost-e1648914092691.png"
         name={name}
         onLogout={handleLogout}
       />
 
-      {/* Menu */}
       <div className="flex flex-col items-center py-8">
         <h1 className="text-2xl font-bold mb-8" style={{ color: HEADER_COLOR }}>
           เมนูหลัก
@@ -82,8 +83,8 @@ function MenuPage() {
               style={{
                 background: BG_MENU,
                 borderColor: BORDER_COLOR,
-                transition: "all 0.2s",
-                cursor: "pointer"
+                cursor: "pointer",
+                transition: "all 0.2s"
               }}
               onMouseEnter={e => {
                 e.currentTarget.style.background = BG_MENU_HOVER;

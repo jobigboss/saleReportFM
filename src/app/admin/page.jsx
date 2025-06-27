@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";   // ← import useEffect!
 import { useRouter } from "next/navigation";
 
 function AdminPage() {
@@ -8,7 +8,17 @@ function AdminPage() {
   const [error, setError] = useState("");
   const [forceMode, setForceMode] = useState(false);
   const [formCache, setFormCache] = useState(null);
+  const [logoutReason, setLogoutReason] = useState("");
   const router = useRouter();
+
+  // Load logoutReason จาก localStorage (ถ้ามี)
+  useEffect(() => {
+    const msg = localStorage.getItem("logout_reason");
+    if (msg) {
+      setLogoutReason(msg);
+      localStorage.removeItem("logout_reason");
+    }
+  }, []);
 
   // -- login function (support forceLogout)
   const doLogin = async ({ email, password, forceLogout = false }) => {
@@ -70,6 +80,11 @@ function AdminPage() {
         onSubmit={handleSubmit}
         autoComplete="off"
       >
+        {/* แจ้งเหตุผล logout (ถ้ามี) */}
+        {logoutReason && (
+          <div className="mb-2 text-red-600 text-center font-bold">{logoutReason}</div>
+        )}
+
         {/* โลโก้ Foremost */}
         <div className="flex flex-col items-center mb-1">
           <div className="h-20 w-20 rounded-full bg-[#ecd8b2] flex items-center justify-center shadow">

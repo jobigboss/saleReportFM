@@ -27,35 +27,38 @@ function MenuPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const sessionId = localStorage.getItem("sessionId");
-    const email = localStorage.getItem("email");
-    if (!sessionId || !email) {
-      router.replace("/admin");
-      return;
-    }
-    // validate session server
-    fetch("/api/admin/validate-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, sessionId }),
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (!data.valid) {
-          localStorage.clear();
-          router.replace("/admin");
-        } else {
-          setRole(localStorage.getItem("role"));
-          setName(localStorage.getItem("name"));
-        }
-        setLoading(false);
-      })
-      .catch(() => {
+  const sessionId = localStorage.getItem("sessionId");
+  const email = localStorage.getItem("email");
+  if (!sessionId || !email) {
+    router.replace("/admin");
+    return;
+  }
+  fetch("/api/admin/validate-session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, sessionId }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.valid) {
         localStorage.clear();
+        // แจ้งสาเหตุบนหน้า login
+        localStorage.setItem("logout_reason", "บัญชีถูก force logout เนื่องจากมีการเข้าสู่ระบบจากเครื่องอื่น");
         router.replace("/admin");
-        setLoading(false);
-      });
-  }, [router]);
+      } else {
+        setRole(localStorage.getItem("role"));
+        setName(localStorage.getItem("name"));
+      }
+      setLoading(false);
+    })
+    .catch(() => {
+      localStorage.clear();
+      localStorage.setItem("logout_reason", "Session หมดอายุหรือไม่ถูกต้อง");
+      router.replace("/admin");
+      setLoading(false);
+    });
+}, [router]);
+
 
   const handleLogout = async () => {
     const email = localStorage.getItem("email");

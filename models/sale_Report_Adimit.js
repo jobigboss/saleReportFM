@@ -10,6 +10,7 @@ const AdminSchema = new mongoose.Schema(
     phone: { type: String, default: "" },
     isActive: { type: Boolean, default: true }, // <<< เพิ่ม field นี้
     resignedAt: { type: Date, default: null },  // <<< เพิ่ม field นี้
+    sessionId: { type: String, default: null },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
   },

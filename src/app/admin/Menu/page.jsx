@@ -16,32 +16,35 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const sessionId = localStorage.getItem("sessionId");
-    const email = localStorage.getItem("email");
-    if (!sessionId || !email) {
+  const sessionId = localStorage.getItem("sessionId");
+  const email = localStorage.getItem("email");
+  console.log("LocalStorage sessionId:", sessionId); // <<<
+  if (!sessionId || !email) {
+    router.replace("/admin");
+    return;
+  }
+  fetch("/api/admin/validate-session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, sessionId }),
+  }).then(async res => {
+    if (!res.ok) {
+      localStorage.clear();
+      localStorage.setItem(
+        "logout_reason",
+        "บัญชีถูก force logout เนื่องจากมีการเข้าสู่ระบบจากเครื่องอื่น"
+      );
       router.replace("/admin");
-      return;
+    } else {
+      const data = await res.json();
+      setRole(data.role);
+      setName(data.name);
+      setLoading(false);
+      console.log("API validate-session (OK):", data); // <<<
     }
-    fetch("/api/admin/validate-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, sessionId }),
-    }).then(async res => {
-      if (!res.ok) {
-        localStorage.clear();
-        localStorage.setItem(
-          "logout_reason",
-          "บัญชีถูก force logout เนื่องจากมีการเข้าสู่ระบบจากเครื่องอื่น"
-        );
-        router.replace("/admin");
-      } else {
-        const data = await res.json();
-        setRole(data.role);
-        setName(data.name);
-        setLoading(false);
-      }
-    });
-  }, []);
+  });
+}, []);
+
 
   const handleLogout = async () => {
     const email = localStorage.getItem("email");

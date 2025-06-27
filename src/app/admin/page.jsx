@@ -20,35 +20,37 @@ export default function AdminPage() {
   }, []);
 
   const doLogin = async ({ email, password, forceLogout = false }) => {
-    setLoading(true);
-    setError("");
-    const res = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, forceLogout }),
-    });
-    const data = await res.json();
-    setLoading(false);
+  setLoading(true);
+  setError("");
+  const res = await fetch("/api/admin/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, forceLogout }),
+  });
+  const data = await res.json();
+  setLoading(false);
 
-    if (res.status === 403 && data.error === "active_session") {
-      setForceMode(true);
-      setFormCache({ email, password });
-      setError(data.message || "บัญชีนี้กำลังใช้งานอยู่บนเครื่องอื่น");
-      return;
-    }
-    if (!res.ok) {
-      setError(data.error || "Login failed");
-      return;
-    }
+  if (res.status === 403 && data.error === "active_session") {
+    setForceMode(true);
+    setFormCache({ email, password });
+    setError(data.message || "บัญชีนี้กำลังใช้งานอยู่บนเครื่องอื่น");
+    return;
+  }
+  if (!res.ok) {
+    setError(data.error || "Login failed");
+    return;
+  }
 
-    // สำคัญ: เอา sessionId ล่าสุด set
-    localStorage.setItem("email", email);
-    localStorage.setItem("sessionId", data.sessionId);
-    localStorage.setItem("role", data.role);
-    localStorage.setItem("name", data.name);
+  // สำคัญ!! clear แล้ว set sessionId ที่ response ใหม่ทุกครั้ง
+  localStorage.clear();
+  localStorage.setItem("email", email);
+  localStorage.setItem("sessionId", data.sessionId);
+  localStorage.setItem("role", data.role);
+  localStorage.setItem("name", data.name);
 
-    router.replace("/admin/Menu");
-  };
+  router.replace("/admin/Menu");
+};
+
 
   const handleSubmit = (e) => {
     e.preventDefault();

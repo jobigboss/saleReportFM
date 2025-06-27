@@ -41,10 +41,12 @@ export default function AdminPage() {
       return;
     }
 
+    // สำคัญ: เอา sessionId ล่าสุด set
     localStorage.setItem("email", email);
     localStorage.setItem("sessionId", data.sessionId);
     localStorage.setItem("role", data.role);
     localStorage.setItem("name", data.name);
+
     router.replace("/admin/Menu");
   };
 
@@ -75,6 +77,7 @@ export default function AdminPage() {
         onSubmit={handleSubmit}
         autoComplete="off"
       >
+        {/* โลโก้ Foremost */}
         <div className="flex flex-col items-center mb-1">
           <div className="h-20 w-20 rounded-full bg-[#ecd8b2] flex items-center justify-center shadow">
             <img

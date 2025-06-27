@@ -7,7 +7,6 @@ export async function POST(req) {
   const { email, sessionId } = await req.json();
   const user = await Admin.findOne({ email, isActive: true });
 
-  // ต้องเทียบ sessionId ตรงเป๊ะ (และไม่ใช่ null)
   if (!user || !user.sessionId || user.sessionId !== sessionId) {
     return NextResponse.json({ valid: false }, { status: 401 });
   }

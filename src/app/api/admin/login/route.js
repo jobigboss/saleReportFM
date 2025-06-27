@@ -13,7 +13,7 @@ export async function POST(req) {
   const match = await bcrypt.compare(password, user.password);
   if (!match) return NextResponse.json({ error: "invalid password" }, { status: 401 });
 
-  // Case: มี session เดิม + ยังไม่ได้ force logout → แจ้งเตือน
+  // ถ้ามี sessionId แล้ว แต่ไม่ได้ forceLogout
   if (user.sessionId && !forceLogout) {
     return NextResponse.json({
       error: "active_session",
@@ -21,15 +21,13 @@ export async function POST(req) {
     }, { status: 403 });
   }
 
-  // --- Force logout: เตะ session เก่าออกก่อน
+  // Force Logout: เตะเครื่องเก่า
   if (user.sessionId && forceLogout) {
-    user.sessionId = null;
+    user.sessionId = null; // เตะเครื่องเก่า
     await user.save();
-    // **สำคัญ**: ต้องรีเฟรชข้อมูลในตัวแปร user
-    // reload user จาก DB อีกรอบ (optional)
   }
 
-  // --- สร้าง session ใหม่ (หรือ กรณีปกติ)
+  // สร้าง session ใหม่ (ทุกกรณี)
   const sessionId = crypto.randomUUID();
   user.sessionId = sessionId;
   await user.save();

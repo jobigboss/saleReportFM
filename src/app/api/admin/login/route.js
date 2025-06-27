@@ -1,3 +1,4 @@
+// /api/admin/login/route.js
 import { connectMongoDB } from '../../../../../lib/mongodb';
 import Admin from '../../../../../models/sale_Report_Adimit';
 import { NextResponse } from "next/server";
@@ -13,6 +14,7 @@ export async function POST(req) {
   const match = await bcrypt.compare(password, user.password);
   if (!match) return NextResponse.json({ error: "invalid password" }, { status: 401 });
 
+  // ถ้ามี session อยู่ และยังไม่กด force logout
   if (user.sessionId && !forceLogout) {
     return NextResponse.json({
       error: "active_session",
@@ -20,8 +22,8 @@ export async function POST(req) {
     }, { status: 403 });
   }
 
-  // ถ้า forceLogout ให้เตะ session เก่าออก
-  if (user.sessionId && forceLogout) {
+  // ถ้า forceLogout = true ให้เตะเครื่องเก่า (ลบ sessionId เดิมก่อน)
+  if (forceLogout) {
     user.sessionId = null;
     await user.save();
   }

@@ -1,4 +1,5 @@
 
+// api/admin/logout
 import { connectMongoDB } from '../../../../../lib/mongodb';
 import Admin from '../../../../../models/sale_Report_Adimit';
 import { NextResponse } from "next/server";

@@ -40,11 +40,15 @@ function MenuPage() {
   }).then(async res => {
     if (!res.ok) {
       localStorage.clear();
-      localStorage.setItem("logout_reason", "บัญชีถูก force logout เนื่องจากมีการเข้าสู่ระบบจากเครื่องอื่น");
+      localStorage.setItem(
+        "logout_reason",
+        "บัญชีถูก force logout เนื่องจากมีการเข้าสู่ระบบจากเครื่องอื่น"
+      );
       router.replace("/admin");
     }
   });
 }, [router]);
+
 
 
 

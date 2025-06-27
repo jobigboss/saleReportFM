@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";   // ← import useEffect!
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 function AdminPage() {
@@ -8,19 +8,17 @@ function AdminPage() {
   const [error, setError] = useState("");
   const [forceMode, setForceMode] = useState(false);
   const [formCache, setFormCache] = useState(null);
-  const [logoutReason, setLogoutReason] = useState("");
   const router = useRouter();
+  const [logoutReason, setLogoutReason] = useState("");
 
-  // Load logoutReason จาก localStorage (ถ้ามี)
-// โค้ดในหน้า login
-useEffect(() => {
-  const msg = localStorage.getItem("logout_reason");
-  if (msg) {
-    setLogoutReason(msg);
-    localStorage.removeItem("logout_reason");
-  }
-}, []);
-
+  // อ่าน logoutReason ที่ถูกเตะออก
+  useEffect(() => {
+    const msg = localStorage.getItem("logout_reason");
+    if (msg) {
+      setLogoutReason(msg);
+      localStorage.removeItem("logout_reason");
+    }
+  }, []);
 
   // -- login function (support forceLogout)
   const doLogin = async ({ email, password, forceLogout = false }) => {
@@ -61,7 +59,7 @@ useEffect(() => {
     doLogin({ email, password });
   };
 
-  // -- force logout
+  // -- force logout (เตะเครื่องเก่า)
   const handleForceLogout = () => {
     if (!formCache) return;
     doLogin({ ...formCache, forceLogout: true });
@@ -82,11 +80,6 @@ useEffect(() => {
         onSubmit={handleSubmit}
         autoComplete="off"
       >
-        {/* แจ้งเหตุผล logout (ถ้ามี) */}
-        {logoutReason && (
-          <div className="mb-2 text-red-600 text-center font-bold">{logoutReason}</div>
-        )}
-
         {/* โลโก้ Foremost */}
         <div className="flex flex-col items-center mb-1">
           <div className="h-20 w-20 rounded-full bg-[#ecd8b2] flex items-center justify-center shadow">
@@ -123,7 +116,7 @@ useEffect(() => {
         {error && (
           <div className="text-red-600 text-center">
             {error}
-            {/* Force confirm / cancel */}
+            {/* Popup Force Logout */}
             {forceMode && (
               <div className="flex flex-col mt-2 gap-2">
                 <button
@@ -153,6 +146,10 @@ useEffect(() => {
         >
           {loading ? "กำลังเข้าสู่ระบบ..." : "Login"}
         </button>
+        {/* แจ้งเตือนโดนเตะออก */}
+        {logoutReason && (
+          <div className="mb-2 text-red-600 text-center font-bold">{logoutReason}</div>
+        )}
       </form>
     </div>
   );

@@ -14,7 +14,7 @@ export async function POST(req) {
   const match = await bcrypt.compare(password, user.password);
   if (!match) return NextResponse.json({ error: "invalid password" }, { status: 401 });
 
-  // ถ้ามี sessionId แล้ว และไม่ได้ forceLogout
+  // ถ้ามี sessionId อยู่ และไม่ได้ force
   if (user.sessionId && !forceLogout) {
     return NextResponse.json({
       error: "active_session",
@@ -22,7 +22,7 @@ export async function POST(req) {
     }, { status: 403 });
   }
 
-  // --- generate session id ใหม่ ---
+  // force หรือไม่มี session → login ให้
   const sessionId = crypto.randomUUID();
   user.sessionId = sessionId;
   await user.save();

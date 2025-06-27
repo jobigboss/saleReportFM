@@ -13,20 +13,17 @@ export async function POST(req) {
   const match = await bcrypt.compare(password, user.password);
   if (!match) return NextResponse.json({ error: "invalid password" }, { status: 401 });
 
-  // มี session อยู่แล้ว และยังไม่ได้ force
   if (user.sessionId && !forceLogout) {
     return NextResponse.json({
       error: "active_session",
-      message: "บัญชีนี้กำลังใช้งานอยู่บนเครื่องอื่น ต้องการ force logout เครื่องเดิมไหม?",
+      message: "บัญชีนี้กำลังใช้งานบนเครื่องอื่น ต้องการ force logout เครื่องเดิมหรือไม่?"
     }, { status: 403 });
   }
 
-  // ถ้ามี forceLogout: เตะ session เดิมออก
-  if (forceLogout && user.sessionId) {
+  // ถ้า forceLogout ให้เตะ session เก่าออก
+  if (user.sessionId && forceLogout) {
     user.sessionId = null;
     await user.save();
-    // wait สัก 100 ms
-    await new Promise(r => setTimeout(r, 100));
   }
 
   // สร้าง session ใหม่

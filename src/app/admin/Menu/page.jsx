@@ -1,9 +1,8 @@
-
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MENU_LIST, ROLE_MENUS } from "./components/Menus";
-import NavBar from "./components/Nevbar";
+import { MENU_LIST, ROLE_MENUS } from "./components/Menus"; // ปรับ import ให้ตรง path จริง
+import NavBar from "./components/Nevbar"; // ปรับ import ให้ตรง path จริง
 
 const ICON_COLOR = "#beb096";
 const ICON_HOVER = "#ecd8b2";
@@ -21,13 +20,12 @@ function getMenuByRole(role) {
   return MENU_LIST.filter(menu => keys.includes(menu.key));
 }
 
-function MenuPage() {
+export default function MenuPage() {
   const router = useRouter();
   const [role, setRole] = useState(null);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // ✅ มี useEffect แค่ตัวเดียว!
   useEffect(() => {
     const sessionId = localStorage.getItem("sessionId");
     const email = localStorage.getItem("email");
@@ -138,6 +136,3 @@ function MenuPage() {
     </div>
   );
 }
-
-export default MenuPage;
-

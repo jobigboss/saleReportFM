@@ -2,23 +2,22 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-function AdminPage() {
+export default function AdminPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [forceMode, setForceMode] = useState(false);
   const [formCache, setFormCache] = useState(null);
-  const router = useRouter();
   const [logoutReason, setLogoutReason] = useState("");
+  const router = useRouter();
 
-useEffect(() => {
-  const msg = localStorage.getItem("logout_reason");
-  if (msg) {
-    setLogoutReason(msg);
-    localStorage.removeItem("logout_reason");
-  }
-}, []);
-
+  useEffect(() => {
+    const msg = localStorage.getItem("logout_reason");
+    if (msg) {
+      setLogoutReason(msg);
+      localStorage.removeItem("logout_reason");
+    }
+  }, []);
 
   const doLogin = async ({ email, password, forceLogout = false }) => {
     setLoading(true);
@@ -147,4 +146,3 @@ useEffect(() => {
     </div>
   );
 }
-export default AdminPage;

@@ -155,6 +155,7 @@ export default function DataReportEditPage(props) {
             className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-200 outline-none transition"
           />
         </div>
+        
         {/* วันที่ */}
         <div>
           <label className="block font-semibold mb-1 text-gray-700">วันที่ลงรายงาน</label>
@@ -175,6 +176,49 @@ export default function DataReportEditPage(props) {
             required
           />
         </div>
+
+        {/* Sample Cups */}
+        <div>
+          <label className="block font-semibold mb-1 text-gray-700">แจกชิม (แก้ว)</label>
+          <input
+            type="number"
+            name="report_sampleCups"
+            value={report.report_sampleCups ?? ""}
+            min={0}
+            onChange={e =>
+              handleChange({
+                target: {
+                  name: "report_sampleCups",
+                  value: e.target.value === "" ? "" : Number(e.target.value), // Ensure number or empty
+                }
+              })
+            }
+            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-200 outline-none transition"
+            placeholder="จำนวนแก้ว"
+          />
+        </div>
+
+        {/* Bills Sold */}
+        <div>
+          <label className="block font-semibold mb-1 text-gray-700">ขายได้ (บิล)</label>
+          <input
+            type="number"
+            name="report_billsSold"
+            value={report.report_billsSold ?? ""}
+            min={0}
+            onChange={e =>
+              handleChange({
+                target: {
+                  name: "report_billsSold",
+                  value: e.target.value === "" ? "" : Number(e.target.value),
+                }
+              })
+            }
+            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-200 outline-none transition"
+            placeholder="จำนวนบิล"
+          />
+        </div>
+
 
         {/* ปุ่ม */}
         <div className="flex gap-4 mt-8">

@@ -247,6 +247,8 @@ function formatThaiDate(dateStr) {
                 <th className="px-4 py-3 text-left">ชื่อร้าน</th>
                 <th className="px-4 py-3 text-left">จังหวัด</th>
                 <th className="px-4 py-3 text-left">วันที่</th>
+                <th className="px-4 py-3 text-left">Cup Serves</th>
+                <th className="px-4 py-3 text-left">Bills</th>
                 <th className="px-4 py-3 text-left">ผู้ลง</th>
                 <th className="px-4 py-3 text-left">เบอร์โทร</th>
                 <th className="px-4 py-3 text-center">Action</th>
@@ -266,6 +268,8 @@ function formatThaiDate(dateStr) {
                     <td className="px-4 py-2">
                       {formatThaiDate(report.report_SubmitAt)}
                     </td>
+                    <td className="px-4 py-2">{report.report_sampleCups}</td>
+                    <td className="px-4 py-2">{report.report_billsSold}</td>
                     <td className="px-4 py-2">
                       {user
                         ? `${user.user_Name} ${user.user_Lastname}`

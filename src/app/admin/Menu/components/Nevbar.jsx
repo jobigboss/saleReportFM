@@ -1,19 +1,25 @@
-"use client";
 import React, { useState, useRef, useEffect } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, Menu as MenuIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-function NavBar({ logo, name = "Bigboss", onLogout }) {
+function NavBar({ logo, onLogout }) {
   const [open, setOpen] = useState(false);
+  const [userName, setUserName] = useState("User"); // default
   const ref = useRef();
+  const router = useRouter();
   const buttonWidth = 180;
 
   useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    setUserName(localStorage.getItem("name") || "User");
   }, []);
+
+  // กรณีที่ login เปลี่ยน user ใน session เดียวกัน
+  // ให้ broadcast event หรือใช้ state management เพิ่มเติม (optional)
+
+  const handleMenuClick = () => {
+    setOpen(false);
+    router.push("/admin/Menu");
+  };
 
   return (
     <nav className="w-full flex items-center justify-between px-6 py-3 bg-[#232321] border-b border-[#494137] shadow-md z-30">
@@ -40,7 +46,7 @@ function NavBar({ logo, name = "Bigboss", onLogout }) {
             cursor: "pointer"
           }}
         >
-          <span className="truncate block max-w-[110px]">{name}</span>
+          <span className="truncate block max-w-[110px]">{userName}</span>
           <svg
             className={`w-4 h-4 ml-1 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
             fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
@@ -63,6 +69,13 @@ function NavBar({ logo, name = "Bigboss", onLogout }) {
               boxShadow: "0 8px 32px 0 #0007",
             }}
           >
+            <button
+              className="flex items-center gap-2 w-full px-4 py-3 text-left text-[#cfc6b7] hover:bg-[#37322b] hover:text-[#fff5dc] transition font-medium"
+              onClick={handleMenuClick}
+            >
+              <MenuIcon className="w-5 h-5" />
+              <span>Menu</span>
+            </button>
             <button
               className="flex items-center gap-2 w-full px-4 py-3 text-left text-[#cfc6b7] hover:bg-[#37322b] hover:text-[#fff5dc] transition font-medium"
               onClick={() => { setOpen(false); onLogout && onLogout(); }}

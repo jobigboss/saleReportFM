@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import DashboardSidderbar from "./DashboardSidderbar";
 
 const productOptions = {
   ALL: "สินค้าทั้งหมด",
@@ -289,6 +290,7 @@ function DashboardPage() {
 
   return (
     <div className="p-6 bg-[#F3F9FF] min-h-screen">
+      <DashboardPage />
       <h2 className="text-2xl font-bold mb-4 text-center text-[#005BAC]">
         เปรียบเทียบยอดขายสินค้าแยกตามขนาดและช่องทาง
       </h2>

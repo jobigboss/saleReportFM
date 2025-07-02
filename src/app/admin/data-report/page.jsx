@@ -28,6 +28,8 @@ export default function DataReportListPage() {
   const [selectedChannel, setSelectedChannel] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState([]);
   const [selectedArea2, setSelectedArea2] = useState([]);
+  const [selectedCheerType, setSelectedCheerType] = useState([]);
+  const [showCheerType, setShowCheerType] = useState(false);
 
   // Accordion state
   const [showChannel, setShowChannel] = useState(false);
@@ -44,16 +46,13 @@ export default function DataReportListPage() {
 
   // Pagination state
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(25);
-  
+  const [perPage, setPerPage] = useState(10);
+
   // Validate date input
   useEffect(() => {
     const today = todayStr();
-    // dateFrom > today → set = today
     if (dateFrom && dateFrom > today) setDateFrom(today);
-    // dateTo < dateFrom → set = dateFrom
     if (dateFrom && dateTo && dateTo < dateFrom) setDateTo(dateFrom);
-    // dateTo > today → set = today
     if (dateTo && dateTo > today) setDateTo(today);
   }, [dateFrom, dateTo]);
 
@@ -79,17 +78,16 @@ export default function DataReportListPage() {
     return users.find(u => u.user_LineID === lineId);
   }
 
-function formatThaiDate(dateStr) {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  // แปลงไปเวลาไทย (UTC+7)
-  const utc = date.getTime() + (date.getTimezoneOffset() * 60000); // แปลงเป็น UTC ms
-  const bangkok = new Date(utc + 7 * 60 * 60000); // เพิ่ม 7 ชั่วโมง (ms)
-  const year = bangkok.getFullYear();
-  const month = (bangkok.getMonth() + 1).toString().padStart(2, "0");
-  const day = bangkok.getDate().toString().padStart(2, "0");
-  return `${day}/${month}/${year}`;
-}
+  function formatThaiDate(dateStr) {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+    const bangkok = new Date(utc + 7 * 60 * 60000);
+    const year = bangkok.getFullYear();
+    const month = (bangkok.getMonth() + 1).toString().padStart(2, "0");
+    const day = bangkok.getDate().toString().padStart(2, "0");
+    return `${day}/${month}/${year}`;
+  }
 
   function handleCheck(setter, value, checked) {
     setter(prev =>
@@ -97,29 +95,36 @@ function formatThaiDate(dateStr) {
     );
   }
 
+  // Options
+  const cheerTypeOptions = [
+    "เชียร์ขาย & ชงชิม",
+    "เชียร์ขายอย่างเดียว"
+  ];
+
   // Filtering and search
   const sortedReports = [...reports].sort((a, b) => {
-  // null/undefined ไปท้าย
-  if (!a.report_SubmitAt) return 1;
-  if (!b.report_SubmitAt) return -1;
-  return new Date(b.report_SubmitAt) - new Date(a.report_SubmitAt);
-});
+    if (!a.report_SubmitAt) return 1;
+    if (!b.report_SubmitAt) return -1;
+    return new Date(b.report_SubmitAt) - new Date(a.report_SubmitAt);
+  });
 
   const filtered = sortedReports.filter(r => {
-    // 1. Filter checkbox
+    // ===== Filter ประเภทเชียร์ (report_cheerType) =====
+    if (
+      selectedCheerType.length &&
+      !selectedCheerType.includes((r.report_cheerType || "").trim())
+    ) return false;
+
     if (selectedChannel.length && !selectedChannel.includes(r.store_Channel)) return false;
     if (selectedAccount.length && !selectedAccount.includes(r.store_Account)) return false;
     if (selectedArea2.length && !selectedArea2.includes(r.store_Area2)) return false;
 
-    // 2. Filter by date range
     if (dateFrom) {
       if (!r.report_SubmitAt || new Date(r.report_SubmitAt) < new Date(dateFrom)) return false;
     }
     if (dateTo) {
       if (!r.report_SubmitAt || new Date(r.report_SubmitAt) > new Date(dateTo)) return false;
     }
-
-    // 3. Search (debounce)
     if (debouncedSearch.trim()) {
       const user = findUser(r.user_LineID);
       const searchValue = debouncedSearch.trim().toLowerCase();
@@ -127,6 +132,7 @@ function formatThaiDate(dateStr) {
         r.report_ID,
         r.store_Name,
         r.store_Province,
+        r.report_cheerType,
         formatThaiDate(r.report_SubmitAt),
         user ? `${user.user_Name} ${user.user_Lastname}` : "",
         user ? user.user_Phone : "",
@@ -146,7 +152,22 @@ function formatThaiDate(dateStr) {
   // Reset page if filter/search/perPage เปลี่ยน
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, selectedChannel, selectedAccount, selectedArea2, dateFrom, dateTo, perPage]);
+  }, [debouncedSearch, selectedCheerType, selectedChannel, selectedAccount, selectedArea2, dateFrom, dateTo, perPage]);
+
+  async function handleDelete(reportId) {
+    if (!window.confirm("ยืนยันการลบรายการนี้? ลบแล้วไม่สามารถย้อนคืนได้!")) return;
+    try {
+      const res = await fetch(`/api/admin/sale-report/${reportId}`, { method: "DELETE" });
+      if (res.ok) {
+        setReports(reports => reports.filter(r => r.report_ID !== reportId));
+        alert("ลบสำเร็จ");
+      } else {
+        alert("เกิดข้อผิดพลาดในการลบ");
+      }
+    } catch (err) {
+      alert("ลบไม่สำเร็จ");
+    }
+  }
 
   if (loading)
     return (
@@ -157,8 +178,7 @@ function formatThaiDate(dateStr) {
 
   return (
     <div className="max-w-7xl mx-auto my-8 px-3">
-      
-      <div className="bg-gradient-to-br from-[#f8fafc] to-white rounded-2xl shadow-xl p-6">
+      <div className="bg-gradient-to-br from-[#f8fafc] to-white rounded-2xl shadow p-6 border border-gray-100">
         <Nevbar />
         <h1 className="text-2xl md:text-3xl font-extrabold mb-2 mt-2 tracking-tight">
           รายการรายงานทั้งหมด
@@ -166,7 +186,7 @@ function formatThaiDate(dateStr) {
         <div className="text-sm text-gray-500 mb-4">{`แสดง ${total} รายการ`}</div>
 
         {/* Search + Date + Filter */}
-        <div className="mb-6 flex flex-col md:flex-row md:items-end gap-3">
+        <div className="mb-6 flex flex-col md:flex-row md:items-end gap-4">
           {/* Search */}
           <div className="w-full md:w-1/3">
             <input
@@ -201,13 +221,20 @@ function formatThaiDate(dateStr) {
               <button
                 onClick={() => { setDateFrom(""); setDateTo(""); }}
                 className="ml-2 text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-              >
-                ล้างวันที่
-              </button>
+              >ล้างวันที่</button>
             )}
           </div>
-          {/* Checkbox filter group */}
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
+          {/* Filter group */}
+          <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+            <FilterGroup
+              label="ประเภทเชียร์"
+              show={showCheerType}
+              setShow={setShowCheerType}
+              options={cheerTypeOptions}
+              selected={selectedCheerType}
+              setSelected={setSelectedCheerType}
+              color="orange"
+            />
             <FilterGroup
               label="ช่องทาง"
               show={showChannel}
@@ -239,14 +266,15 @@ function formatThaiDate(dateStr) {
         </div>
 
         {/* Data Table */}
-        <div className="overflow-x-auto rounded-xl shadow">
+        <div className="overflow-x-auto rounded-xl shadow border border-gray-100">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="bg-[#eef3fa] text-gray-700">
+              <tr className="bg-[#eef3fa] text-gray-700 font-semibold">
                 <th className="px-4 py-3 text-left">Report ID</th>
                 <th className="px-4 py-3 text-left">ชื่อร้าน</th>
                 <th className="px-4 py-3 text-left">จังหวัด</th>
                 <th className="px-4 py-3 text-left">วันที่</th>
+                <th className="px-4 py-3 text-left">ประเภทเชียร์</th>
                 <th className="px-4 py-3 text-left">Cup Serves</th>
                 <th className="px-4 py-3 text-left">Bills</th>
                 <th className="px-4 py-3 text-left">ผู้ลง</th>
@@ -260,37 +288,46 @@ function formatThaiDate(dateStr) {
                 return (
                   <tr
                     key={report.report_ID}
-                    className="hover:bg-blue-50/80 transition-all"
+                    className="hover:bg-blue-50 transition"
                   >
                     <td className="px-4 py-2">{report.report_ID}</td>
                     <td className="px-4 py-2">{report.store_Name}</td>
                     <td className="px-4 py-2">{report.store_Province}</td>
-                    <td className="px-4 py-2">
-                      {formatThaiDate(report.report_SubmitAt)}
-                    </td>
+                    <td className="px-4 py-2">{formatThaiDate(report.report_SubmitAt)}</td>
+                    <td className="px-4 py-2">{report.report_cheerType || "-"}</td>
                     <td className="px-4 py-2">{report.report_sampleCups}</td>
                     <td className="px-4 py-2">{report.report_billsSold}</td>
-                    <td className="px-4 py-2">
-                      {user
-                        ? `${user.user_Name} ${user.user_Lastname}`
-                        : "-"}
-                    </td>
-                    <td className="px-4 py-2">
-                      {user ? user.user_Phone : "-"}
-                    </td>
+                    <td className="px-4 py-2">{user ? `${user.user_Name} ${user.user_Lastname}` : "-"}</td>
+                    <td className="px-4 py-2">{user ? user.user_Phone : "-"}</td>
                     <td className="px-4 py-2 text-center">
-                      <Link href={`/admin/data-report/${report.report_ID}`}>
-                        <button className="px-4 py-1 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition font-medium">
-                          Edit
+                      <div className="flex gap-2 justify-center">
+                        <Link href={`/admin/data-report/${report.report_ID}`}>
+                          <button
+                            className="px-3 py-1 rounded-full font-medium shadow transition 
+                              bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 text-white"
+                            style={{ minWidth: 62 }}
+                          >
+                            Edit
+                          </button>
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(report.report_ID)}
+                          className="px-3 py-1 rounded-full font-medium shadow transition
+                            bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-700 hover:to-pink-600 
+                            focus:outline-none focus:ring-2 focus:ring-red-200 text-white"
+                          style={{ minWidth: 62 }}
+                          aria-label="Delete report"
+                        >
+                          Delete
                         </button>
-                      </Link>
+                      </div>
                     </td>
                   </tr>
                 );
               })}
               {paged.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center text-gray-400 py-6">
+                  <td colSpan={10} className="text-center text-gray-400 py-6">
                     ไม่พบข้อมูลที่ค้นหา
                   </td>
                 </tr>
@@ -322,7 +359,7 @@ function formatThaiDate(dateStr) {
   );
 }
 
-// Accordion FilterGroup (เหมือนเดิม)
+// Accordion FilterGroup
 function FilterGroup({
   label,
   show,
@@ -338,7 +375,7 @@ function FilterGroup({
     );
   }
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-sm min-w-[160px]">
+    <div className="bg-white border border-gray-100 rounded-xl shadow-sm min-w-[140px]">
       <button
         className="w-full flex items-center gap-2 px-4 py-2 font-semibold text-base hover:bg-gray-50 rounded-t-xl transition"
         type="button"
@@ -390,7 +427,6 @@ function FilterGroup({
 
 // Pagination Component
 function Pagination({ page, setPage, totalPages }) {
-  // แสดง max 5 ปุ่ม
   if (totalPages <= 1) return null;
   let start = Math.max(1, page - 2);
   let end = Math.min(totalPages, start + 4);

@@ -31,13 +31,13 @@ const CustomTooltipPie = ({ active, payload }) => {
   return null;
 };
 
-// ========== ฟังก์ชันนับเฉพาะเสาร์-อาทิตย์ ==========
+// ฟังก์ชันนับเฉพาะเสาร์-อาทิตย์
 const countWeekendDays = (start, end) => {
   let count = 0;
   const current = new Date(start);
   while (current <= end) {
     const day = current.getDay();
-    if (day === 0 || day === 6) count++; // 0=Sunday, 6=Saturday
+    if (day === 0 || day === 6) count++;
     current.setDate(current.getDate() + 1);
   }
   return count;
@@ -45,17 +45,20 @@ const countWeekendDays = (start, end) => {
 
 function PerformancePage() {
   const today = new Date();
-  const [startDate, setStartDate] = useState(today);
+  const prev7 = new Date();
+  prev7.setDate(today.getDate() - 6);
+
+  // default วันที่: 7 วันย้อนหลัง -> วันนี้
+  const [startDate, setStartDate] = useState(prev7);
   const [endDate, setEndDate] = useState(today);
   const [data, setData] = useState([]);
 
-  // ✅ จำนวนวัน: เฉพาะเสาร์-อาทิตย์
-  const numberOfDays = countWeekendDays(startDate, endDate);
-
-    useEffect(() => {
+  // Re-calculate endDate if user เลือก startDate > endDate
+  useEffect(() => {
     if (endDate < startDate) setEndDate(startDate);
   }, [startDate]);
 
+  // fetch data
   useEffect(() => {
     if (startDate && endDate) {
       const query = `start=${startDate.toISOString().split("T")[0]}&end=${endDate.toISOString().split("T")[0]}`;
@@ -66,7 +69,7 @@ function PerformancePage() {
     }
   }, [startDate, endDate]);
 
-  // === สรุปประเภทกิจกรรม (Pie) ===
+  // สรุปประเภทกิจกรรม (Pie)
   const cheerTypeCounts = data.reduce((acc, cur) => {
     const key = cur.report_cheerType || "ไม่ระบุ";
     acc[key] = (acc[key] || 0) + 1;
@@ -89,8 +92,9 @@ function PerformancePage() {
     (item) => item.report_cheerType === "เชียร์ขาย & ชงชิม"
   ).length;
 
-  // ✅ ใช้ numberOfDays (เฉพาะเสาร์-อาทิตย์) คูณ storeCount
-  const target = numberOfDays * storeCount * 180;
+  // ใช้ numberOfDays (เฉพาะเสาร์-อาทิตย์) คูณ storeCount
+  const numberOfDays = countWeekendDays(startDate, endDate);
+  const target = numberOfDays * storeCount * 192;
   const conversionRate = totalCupServe
     ? ((totalBillsSold / totalCupServe) * 100).toFixed(1)
     : 0;
@@ -111,7 +115,7 @@ function PerformancePage() {
     },
   ];
 
-  // ====== รวมข้อมูล Switch Brand ทุกแบรนด์ ======
+  // รวมข้อมูล Switch Brand
   const brandTotals = {};
   data.forEach((item) => {
     const brands = item.report_ChangeBrands || {};
@@ -131,31 +135,30 @@ function PerformancePage() {
     <div className="p-4">
       {/* Date Picker */}
       <div className="flex flex-wrap gap-4 mb-6 items-center">
-  <label className="font-medium">จากวันที่:</label>
-  <DatePicker
-    selected={startDate}
-    onChange={(date) => setStartDate(date)}
-    selectsStart
-    startDate={startDate}
-    endDate={endDate}
-    maxDate={today}            // ✅ ห้ามเลือกวันอนาคต
-    dateFormat="dd/MM/yyyy"
-    className="border rounded px-2 py-1"
-  />
-  <label className="font-medium">ถึงวันที่:</label>
-  <DatePicker
-    selected={endDate}
-    onChange={(date) => setEndDate(date)}
-    selectsEnd
-    startDate={startDate}
-    endDate={endDate}
-    minDate={startDate}        // ✅ ห้ามเลือกก่อน startDate
-    maxDate={today}            // ✅ ห้ามเลือกวันอนาคต
-    dateFormat="dd/MM/yyyy"
-    className="border rounded px-2 py-1"
-  />
-</div>
-
+        <label className="font-medium">จากวันที่:</label>
+        <DatePicker
+          selected={startDate}
+          onChange={(date) => setStartDate(date)}
+          selectsStart
+          startDate={startDate}
+          endDate={endDate}
+          maxDate={today}
+          dateFormat="dd/MM/yyyy"
+          className="border rounded px-2 py-1"
+        />
+        <label className="font-medium">ถึงวันที่:</label>
+        <DatePicker
+          selected={endDate}
+          onChange={(date) => setEndDate(date)}
+          selectsEnd
+          startDate={startDate}
+          endDate={endDate}
+          minDate={startDate}
+          maxDate={today}
+          dateFormat="dd/MM/yyyy"
+          className="border rounded px-2 py-1"
+        />
+      </div>
 
       {/* กราฟประเภทกิจกรรม (Pie) + สรุปเป้าชงชิม (Bar) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -241,16 +244,14 @@ function PerformancePage() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-
           <p className="text-sm text-gray-600">
             ร้านที่ทำกิจกรรม "เชียร์ขาย & ชงชิม": <span className="text-[#005BAC] font-semibold">{storeCount.toLocaleString("th-TH")} ร้าน</span>
           </p>
-          {/* ✅ ใช้ข้อความนี้ */}
           <p className="text-sm text-gray-600 mt-1">
             จำนวนวัน (เฉพาะเสาร์-อาทิตย์): <span className="text-[#005BAC] font-semibold">{numberOfDays} วัน</span>
           </p>
           <p className="text-sm text-gray-600 mt-1">
-            เป้าหมายถ้วยชิมทั้งหมด (180 แก้ว/ร้าน/วัน): <span className="text-[#005BAC] font-semibold">{target.toLocaleString("th-TH")} แก้ว</span>
+            เป้าหมายถ้วยชิมทั้งหมด (192 แก้ว/ร้าน/วัน): <span className="text-[#005BAC] font-semibold">{target.toLocaleString("th-TH")} แก้ว</span>
           </p>
           <p className="text-sm text-gray-600 mt-1">
             ถ้วยชิมรวมที่ทำได้จริง: <span className="text-[#00B9F1] font-semibold">{totalCupServe.toLocaleString("th-TH")} แก้ว</span>
@@ -308,7 +309,7 @@ function PerformancePage() {
           <h3 className="text-lg font-semibold mb-2 text-[#005BAC]">
             เปรียบเทียบจำนวนลูกค้าที่เปลี่ยนแบรนด์ (Switch Brand)
           </h3>
-          <div className="mb-2">
+          <div className="mb-5">
             <span className="inline-block bg-[#E0F4FF] px-5 py-2 rounded-xl text-[#00B9F1] font-bold text-base shadow">
               รวมทั้งหมด: {totalSwitch.toLocaleString("th-TH")} คน
             </span>
@@ -319,7 +320,8 @@ function PerformancePage() {
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={brandChartData}>
+              <BarChart data={brandChartData}  margin={{ top: 32, right: 20, left: 0, bottom: 0 }} >
+                
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip formatter={(value) => value.toLocaleString("th-TH") + " คน"} />

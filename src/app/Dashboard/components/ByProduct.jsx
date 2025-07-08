@@ -1,19 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  LabelList,
+  BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
+  ResponsiveContainer, LabelList
 } from "recharts";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import DashboardSidderbar from "./DashboardSidderbar";
 
+// ---------- Options ----------
 const productOptions = {
   ALL: "สินค้าทั้งหมด",
   sur_Omega369Gold1: "Omega369 Gold 1+",
@@ -36,36 +30,21 @@ const productOptions = {
   surveyYogurtOrange: "โยเกิร์ตดริ้งค์ รสส้ม",
   surveyTFDMuti: "TFD Muti-grain ช็อกโกแลตธัญญพืช",
 };
-
 const targetPacks = [
-  "แพ็ค 3",
-  "แพ็ค 12",
-  "ยกลัง (24)",
-  "ยกลัง (36)",
-  "แพ็ค 4",
-  "ยกลัง (48)",
-  "แพ็ค 6",
-  "เดี่ยว",
-  "ยกลัง",
+  "แพ็ค 3", "แพ็ค 12", "ยกลัง (24)", "ยกลัง (36)", "แพ็ค 4", "ยกลัง (48)",
+  "แพ็ค 6", "เดี่ยว", "ยกลัง",
 ];
-
 const packColors = {
-  "แพ็ค 3": "#B1D8B7",
-  "แพ็ค 12": "#5EC576",
-  "ยกลัง (24)": "#2E8B57",
-  "ยกลัง (36)": "#3CB371",
-  "แพ็ค 4": "#98FB98",
-  "ยกลัง (48)": "#66CDAA",
-  "แพ็ค 6": "#00FA9A",
-  "เดี่ยว": "#20B2AA",
-  "ยกลัง": "#008000",
+  "แพ็ค 3": "#B1D8B7", "แพ็ค 12": "#5EC576", "ยกลัง (24)": "#2E8B57",
+  "ยกลัง (36)": "#3CB371", "แพ็ค 4": "#98FB98", "ยกลัง (48)": "#66CDAA",
+  "แพ็ค 6": "#00FA9A", "เดี่ยว": "#20B2AA", "ยกลัง": "#008000",
 };
 
 function DashboardPage() {
-  // วันที่ปัจจุบัน
   const today = new Date();
   const todayString = today.toISOString().split("T")[0];
 
+  // --------- State ---------
   const [reportData, setReportData] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState("sur_Omega369Gold1");
   const [chartData, setChartData] = useState([]);
@@ -76,7 +55,7 @@ function DashboardPage() {
   const [endDate, setEndDate] = useState("");
   const [searchText, setSearchText] = useState("");
 
-  // ตั้ง default วันที่ย้อนหลัง 30 วันถึงวันนี้
+  // --------- Date default (ย้อนหลัง 30 วัน) ---------
   useEffect(() => {
     const past30 = new Date(today);
     past30.setDate(today.getDate() - 30);
@@ -84,12 +63,12 @@ function DashboardPage() {
     setEndDate(todayString);
   }, [todayString]);
 
-  // Auto ปรับ endDate ถ้า startDate > endDate
+  // --------- endDate ต้องไม่น้อยกว่า startDate ---------
   useEffect(() => {
     if (endDate && startDate && endDate < startDate) setEndDate(startDate);
-  }, [startDate]);
+  }, [startDate, endDate]);
 
-  // Fetch data
+  // --------- Fetch Data ---------
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -103,7 +82,7 @@ function DashboardPage() {
     fetchData();
   }, []);
 
-  // Summary Chart และ Table
+  // --------- Prepare chart/table data ---------
   useEffect(() => {
     const summaryByChannel = {};
     const storeAccountSummary = {};
@@ -114,6 +93,7 @@ function DashboardPage() {
       summaryByChannel[pack] = { pack, MT: 0, GT: 0 };
     });
 
+    // -- Filter ตามช่วงวันที่ --
     const filteredReports = reportData.filter((report) => {
       const date = new Date(report.report_SubmitAt);
       return (
@@ -122,21 +102,19 @@ function DashboardPage() {
       );
     });
 
+    // -- Filter ตามสินค้า --
     const productKeys =
       selectedProduct === "ALL"
         ? Object.keys(productOptions).filter((key) => key !== "ALL")
         : [selectedProduct];
 
-    const tableRows = filteredReports.map((report, index) => {
+    // -- Table --
+    const tableRows = filteredReports.map((report) => {
       const packData = {};
-      targetPacks.forEach((pack) => {
-        packData[pack] = 0;
-      });
-
+      targetPacks.forEach((pack) => { packData[pack] = 0; });
       productKeys.forEach((productKey) => {
         const productData = report.quantities?.[productKey];
         if (!productData) return;
-
         Object.entries(productData).forEach(([volume, packs]) => {
           Object.entries(packs).forEach(([packType, value]) => {
             if (
@@ -150,20 +128,20 @@ function DashboardPage() {
           });
         });
       });
-
       return {
-        no: index + 1,
         store_Name: report.store_Name,
         store_Channel: report.store_Channel,
         store_Account: report.store_Account,
         store_Province: report.store_Province,
         store_Area2: report.store_Area2,
+        report_SubmitAt: report.report_SubmitAt,
         ...packData,
       };
     });
 
     setTableData(tableRows);
 
+    // -- Chart Data --
     filteredReports.forEach((report) => {
       const channel = report.store_Channel;
       const account = report.store_Account;
@@ -171,7 +149,6 @@ function DashboardPage() {
       productKeys.forEach((productKey) => {
         const productData = report.quantities?.[productKey];
         if (!productData) return;
-
         Object.entries(productData).forEach(([size, volumeObj]) => {
           Object.entries(volumeObj).forEach(([packType, value]) => {
             if (
@@ -208,16 +185,11 @@ function DashboardPage() {
     const groupedStoreAccount = Object.entries(storeAccountSummary)
       .map(([account, sizeObj]) => {
         const filteredSize = targetPacks.reduce((acc, pack) => {
-          if (sizeObj[pack] > 0) {
-            acc[pack] = sizeObj[pack];
-          }
+          if (sizeObj[pack] > 0) acc[pack] = sizeObj[pack];
           return acc;
         }, {});
         return Object.keys(filteredSize).length > 0
-          ? {
-              account,
-              ...filteredSize,
-            }
+          ? { account, ...filteredSize }
           : null;
       })
       .filter((entry) => entry !== null);
@@ -227,70 +199,61 @@ function DashboardPage() {
     setTotal({ MT: totalMT, GT: totalGT });
   }, [reportData, selectedProduct, startDate, endDate]);
 
+  // --------- Number Format ---------
   const formatNumber = (num) => {
     if (typeof num !== "number") return "0";
     return num.toLocaleString();
   };
 
+  // --------- Filter Table ด้วย keyword ทุกช่อง (real-time) ---------
   const filteredTableData = tableData.filter((item) => {
     const lower = searchText.toLowerCase();
     return (
       item.store_Name?.toLowerCase().includes(lower) ||
       item.store_Province?.toLowerCase().includes(lower) ||
       item.store_Area2?.toLowerCase().includes(lower) ||
-      item.store_Account?.toLowerCase().includes(lower)
+      item.store_Account?.toLowerCase().includes(lower) ||
+      item.store_Channel?.toLowerCase().includes(lower)
     );
   });
 
+  // --------- Export Excel ---------
   const handleExportExcel = () => {
     const exportData = filteredTableData.map(
       ({
-        no,
-        store_Name,
-        store_Channel,
-        store_Account,
-        store_Province,
-        store_Area2,
-        ...packs
-      }) => ({
-        ลำดับ: no,
+        store_Name, store_Channel, store_Account,
+        store_Province, store_Area2, report_SubmitAt, ...packs
+      }, idx) => ({
+        ลำดับ: idx + 1,
         ชื่อร้าน: store_Name,
         ช่องทาง: store_Channel,
         Account: store_Account,
         จังหวัด: store_Province,
         เขต: store_Area2,
+        วันที่ส่ง: report_SubmitAt,
         ...packs,
       })
     );
-
     const formatDateShort = (dateStr) => {
       const [year, month, day] = dateStr.split("-");
-      return `${year.slice(2)}${month}${day}`; // YYMMDD
+      return `${year.slice(2)}${month}${day}`;
     };
-
     const startFormatted = formatDateShort(startDate);
     const endFormatted = formatDateShort(endDate);
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "รายงาน");
-
     const excelBuffer = XLSX.write(workbook, {
-      bookType: "xlsx",
-      type: "array",
+      bookType: "xlsx", type: "array",
     });
-    const blob = new Blob([excelBuffer], {
-      type: "application/octet-stream",
-    });
-    saveAs(
-      blob,
-      `รายงานยอดขาย_${startFormatted}_${endFormatted}.xlsx`
-    );
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(blob, `รายงานยอดขาย_${startFormatted}_${endFormatted}.xlsx`);
   };
 
+  // --------- UI ---------
   return (
     <div className="p-6 bg-[#F3F9FF] min-h-screen">
-      <DashboardPage />
       <h2 className="text-2xl font-bold mb-4 text-center text-[#005BAC]">
         เปรียบเทียบยอดขายสินค้าแยกตามขนาดและช่องทาง
       </h2>
@@ -326,9 +289,7 @@ function DashboardPage() {
             className="border border-[#005BAC] px-3 py-1 rounded-md"
           >
             {Object.entries(productOptions).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
+              <option key={key} value={key}>{label}</option>
             ))}
           </select>
         </div>
@@ -400,19 +361,15 @@ function DashboardPage() {
         <h3 className="text-xl font-bold text-center text-[#005BAC] mb-4">
           รายละเอียดรายงานตามร้านค้า
         </h3>
-
         {/* 🔍 ช่องค้นหา */}
         <div className="flex justify-between items-center mb-3">
-          {/* ค้นหา */}
           <input
             type="text"
-            placeholder="ค้นหาชื่อร้าน / จังหวัด / เขต"
+            placeholder="ค้นหาชื่อร้าน / จังหวัด / เขต / ช่องทาง / Account"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             className="border border-[#005BAC] px-3 py-1 rounded-md text-sm w-full max-w-sm"
           />
-
-          {/* ปุ่ม Export */}
           <button
             onClick={handleExportExcel}
             className="bg-[#005BAC] text-white px-4 py-1 rounded-md text-sm hover:bg-blue-700"
@@ -420,7 +377,6 @@ function DashboardPage() {
             Export Excel
           </button>
         </div>
-
         <div className="overflow-auto border border-[#ccc] rounded-lg">
           <table className="min-w-full text-sm text-left text-gray-700">
             <thead className="bg-[#005BAC] text-white">
@@ -431,30 +387,33 @@ function DashboardPage() {
                 <th className="px-4 py-2 border text-center">Account</th>
                 <th className="px-4 py-2 border text-center">จังหวัด</th>
                 <th className="px-4 py-2 border text-center">เขต</th>
+                <th className="px-4 py-2 border text-center">วันที่ส่ง</th>
                 {targetPacks.map((pack) => (
-                  <th key={pack} className="px-4 py-2 border text-center">
-                    {pack}
-                  </th>
+                  <th key={pack} className="px-4 py-2 border text-center">{pack}</th>
                 ))}
               </tr>
             </thead>
-
             <tbody>
               {filteredTableData.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-4 text-gray-500">
+                  <td colSpan={7 + targetPacks.length} className="text-center py-4 text-gray-500">
                     ไม่พบข้อมูลในช่วงวันที่ที่เลือก
                   </td>
                 </tr>
               ) : (
-                filteredTableData.map((item) => (
-                  <tr key={item.no} className="hover:bg-[#F0F8FF]">
-                    <td className="px-4 py-2 border text-center">{item.no}</td>
+                filteredTableData.map((item, idx) => (
+                  <tr key={item.store_Account + idx} className="hover:bg-[#F0F8FF]">
+                    <td className="px-4 py-2 border text-center">{idx + 1}</td>
                     <td className="px-4 py-2 border">{item.store_Name}</td>
                     <td className="px-4 py-2 border text-center">{item.store_Channel}</td>
                     <td className="px-4 py-2 border text-center">{item.store_Account}</td>
                     <td className="px-4 py-2 border text-center">{item.store_Province}</td>
                     <td className="px-4 py-2 border text-center">{item.store_Area2}</td>
+                    <td className="px-4 py-2 border text-center">
+                      {item.report_SubmitAt
+                        ? new Date(item.report_SubmitAt).toLocaleDateString("th-TH")
+                        : "-"}
+                    </td>
                     {targetPacks.map((pack) => (
                       <td key={pack} className="px-4 py-2 border text-center">
                         {item[pack] !== undefined ? formatNumber(item[pack]) : "-"}
@@ -467,7 +426,6 @@ function DashboardPage() {
           </table>
         </div>
       </div>
-
     </div>
   );
 }

@@ -18,28 +18,36 @@ export default function AdminPage() {
   }, []);
 
   const doLogin = async ({ email, password }) => {
-    setLoading(true);
-    setError("");
-    const res = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    setLoading(false);
+  setLoading(true);
+  setError("");
+  const res = await fetch("/api/admin/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json();
+  setLoading(false);
 
-    if (!res.ok) {
-      setError(data.error || "Login failed");
-      return;
-    }
+  if (!res.ok) {
+    setError(data.error || "Login failed");
+    return;
+  }
 
-    localStorage.setItem("email", email);
-    localStorage.setItem("sessionId", data.sessionId);
-    localStorage.setItem("role", data.role);
-    localStorage.setItem("name", data.name);
+  localStorage.setItem("email", email);
+  localStorage.setItem("sessionId", data.sessionId);
+  localStorage.setItem("role", data.role);
+  localStorage.setItem("name", data.name);
 
+  // === redirect ตาม role ===
+  if (data.role === "admin") {
     router.replace("/admin/Menu");
-  };
+  } else if (data.role === "user") {
+    router.replace("/Dashboard");
+  } else {
+    setError("Role ไม่ถูกต้อง หรือยังไม่รองรับ");
+  }
+};
+
 
   const handleSubmit = (e) => {
     e.preventDefault();

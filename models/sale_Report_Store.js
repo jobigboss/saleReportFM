@@ -8,6 +8,8 @@ const sale_Report_StoreSchema = new mongoose.Schema({
   store_Province: { type: String },
   store_Area1: { type: String },
   store_Area2: { type: String },
+  store_Type:{type: String},
+  
 });
 
 // 🔁 ตรวจสอบก่อนสร้าง model (สำคัญมากสำหรับ Next.js)

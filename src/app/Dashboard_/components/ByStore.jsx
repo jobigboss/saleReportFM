@@ -6,6 +6,14 @@ import { saveAs } from "file-saver";
 const num = (n) => (isNaN(n) ? "-" : n.toLocaleString());
 const target = 192;
 
+// Sticky left value ตามลำดับ #, Store, Zone, จังหวัด
+const stickyPos = {
+  idx: 0,
+  store: 48,
+  zone: 256,
+  province: 366,
+};
+
 function ByStorePage() {
   const [data, setData] = useState({});
   const [stores, setStores] = useState([]);
@@ -63,7 +71,6 @@ function ByStorePage() {
   }, []);
 
   // ========== Zone Sorting ==========
-  // get all zones in appearing order, or you can custom (BKK, NE, CT, NT, ST)
   const zoneOrder = Array.from(
     new Set(
       Object.values(storeDetail)
@@ -73,9 +80,15 @@ function ByStorePage() {
   );
 
   // filter by search
-  const filteredStores = stores.filter((store) =>
-    store.toLowerCase().includes(search.toLowerCase())
-  );
+  // const filteredStores = stores.filter((store) =>
+  //   store.toLowerCase().includes(search.toLowerCase())
+  // );
+  const filteredStores = stores.filter((store) => {
+  const storeName = store.toLowerCase();
+  const province = (storeDetail[store]?.store_Province ?? "").toLowerCase();
+  const q = search.trim().toLowerCase();
+  return storeName.includes(q) || province.includes(q);
+});
 
   // sort by zone -> then store name
   const sortedStores = filteredStores.sort((a, b) => {
@@ -112,7 +125,7 @@ function ByStorePage() {
 
   // Export Excel (Pivot Matrix)
   const handleExportPivot = () => {
-    const headRow1 = ["#", "Store", "Zone"];
+    const headRow1 = ["#", "Store", "Zone", "Province"];
     dates.forEach(date => {
       const dateLabel = new Date(date).toLocaleDateString("th-TH", {
         year: "2-digit",
@@ -123,16 +136,21 @@ function ByStorePage() {
     });
 
     const subHeaders = ["Serves", "Target", "%vsTarget", "ปิดการขาย", "%Conversion"];
-    const headRow2 = ["", "", ""];
+    const headRow2 = ["", "", "", ""];
     dates.forEach(() => {
       headRow2.push(...subHeaders);
     });
 
-    const formatPercent = (v) => 
+    const formatPercent = (v) =>
       v !== undefined && v !== null && v !== "-" ? `${v}%` : "-";
 
     const rows = sortedStores.map((store, i) => {
-      let row = [i + 1, store, storeDetail[store]?.store_Area2 ?? "-"];
+      let row = [
+        i + 1,
+        store,
+        storeDetail[store]?.store_Area2 ?? "-",
+        storeDetail[store]?.store_Province ?? "-"
+      ];
       dates.forEach(date => {
         const d = data[store]?.[date] || {};
         row.push(
@@ -150,10 +168,10 @@ function ByStorePage() {
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
 
     // merge header (date) colspan=5
-    let col = 3;
+    let col = 4;
     const merges = [];
     dates.forEach(() => {
-      merges.push({ s: { r:0, c:col }, e: { r:0, c:col+4 } });
+      merges.push({ s: { r: 0, c: col }, e: { r: 0, c: col + 4 } });
       col += 5;
     });
     ws["!merges"] = merges;
@@ -182,29 +200,56 @@ function ByStorePage() {
         </button>
       </div>
       <div className="w-full overflow-x-auto rounded-xl shadow">
-        <table className="border-collapse min-w-[1400px] w-full text-xs bg-white">
+        <table className="border-collapse min-w-[1500px] w-full text-xs bg-white">
           <thead>
             <tr>
               <th
-                className="bg-yellow-300 border font-semibold text-gray-700 sticky left-0 z-40 w-12 min-w-[48px] px-2 py-2"
+                className="sticky z-[50] bg-yellow-300 border font-semibold text-gray-700 px-2 py-2"
+                style={{
+                  left: stickyPos.idx,
+                  minWidth: 48,
+                  width: 48,
+                  background: "#fde047"
+                }}
                 rowSpan={2}
-                style={{ background: "#fde047" }}
               >
                 #
               </th>
               <th
-                className="bg-yellow-300 border font-semibold text-gray-700 sticky left-[48px] z-30 w-52 min-w-[208px] px-3 py-2"
+                className="sticky z-[45] bg-yellow-300 border font-semibold text-gray-700 px-3 py-2"
+                style={{
+                  left: stickyPos.store,
+                  minWidth: 208,
+                  width: 208,
+                  background: "#fde047"
+                }}
                 rowSpan={2}
-                style={{ background: "#fde047" }}
               >
                 Store
               </th>
               <th
-                className="bg-yellow-200 border font-semibold text-gray-700 sticky left-[256px] z-20 w-28 min-w-[110px] px-2 py-2"
+                className="sticky z-[40] bg-yellow-200 border font-semibold text-gray-700 px-2 py-2"
+                style={{
+                  left: stickyPos.zone,
+                  minWidth: 110,
+                  width: 110,
+                  background: "#fef08a"
+                }}
                 rowSpan={2}
-                style={{ background: "#fef08a" }}
               >
                 Zone
+              </th>
+              <th
+                className="sticky z-[35] bg-yellow-200 border font-semibold text-gray-700 px-2 py-2"
+                style={{
+                  left: stickyPos.province,
+                  minWidth: 110,
+                  width: 110,
+                  background: "#fef08a"
+                }}
+                rowSpan={2}
+              >
+                จังหวัด
               </th>
               {dates.map((date) => (
                 <th
@@ -235,7 +280,7 @@ function ByStorePage() {
           <tbody>
             {sortedStores.length === 0 && (
               <tr>
-                <td colSpan={3 + dates.length * 5} className="text-center py-8 text-gray-400">
+                <td colSpan={4 + dates.length * 5} className="text-center py-8 text-gray-400">
                   ไม่พบข้อมูลร้าน
                 </td>
               </tr>
@@ -243,23 +288,49 @@ function ByStorePage() {
             {sortedStores.map((store, i) => (
               <tr key={store} className="even:bg-gray-50">
                 <td
-                  className="border text-center font-semibold sticky left-0 z-40 bg-white w-12 min-w-[48px]"
-                  style={{ background: "#fff" }}
+                  className="sticky z-[50] bg-white border text-center font-semibold"
+                  style={{
+                    left: stickyPos.idx,
+                    minWidth: 48,
+                    width: 48,
+                    background: "#fff"
+                  }}
                 >
                   {i + 1}
                 </td>
                 <td
-                  className="border px-2 font-medium sticky left-[48px] z-30 bg-white w-52 min-w-[208px] whitespace-nowrap overflow-hidden text-ellipsis"
-                  style={{ background: "#fff" }}
+                  className="sticky z-[45] bg-white border px-2 font-medium whitespace-nowrap overflow-hidden text-ellipsis"
+                  style={{
+                    left: stickyPos.store,
+                    minWidth: 208,
+                    width: 208,
+                    background: "#fff"
+                  }}
                   title={store}
                 >
                   {store}
                 </td>
                 <td
-                  className="border text-center font-medium sticky left-[256px] z-20 bg-white w-28 min-w-[110px] whitespace-nowrap overflow-hidden text-ellipsis"
-                  style={{ background: "#fff" }}
+                  className="sticky z-[40] bg-white border text-center font-medium whitespace-nowrap overflow-hidden text-ellipsis"
+                  style={{
+                    left: stickyPos.zone,
+                    minWidth: 110,
+                    width: 110,
+                    background: "#fff"
+                  }}
                 >
                   {storeDetail[store]?.store_Area2 ?? "-"}
+                </td>
+                <td
+                  className="sticky z-[35] bg-white border text-center font-medium whitespace-nowrap overflow-hidden text-ellipsis"
+                  style={{
+                    left: stickyPos.province,
+                    minWidth: 110,
+                    width: 110,
+                    background: "#fff"
+                  }}
+                >
+                  {storeDetail[store]?.store_Province ?? "-"}
                 </td>
                 {dates.map((date) =>
                   data[store][date] ? (
@@ -289,6 +360,7 @@ function ByStorePage() {
       </div>
       <style jsx global>{`
         th, td { border: 1px solid #d9d9d9; }
+        th.sticky, td.sticky { box-shadow: 2px 0 0 #ececec; }
       `}</style>
     </div>
   );

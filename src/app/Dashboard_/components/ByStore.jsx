@@ -24,7 +24,7 @@ function ByStorePage() {
   useEffect(() => {
     const fetchAll = async () => {
       const storeRes = await fetch("/api/get/sale_Report_Store").then(res => res.json());
-      const cheerStores = storeRes.filter(s => s.store_Type === "เชียร์ขาย & ชงชิม");
+      const cheerStores = storeRes.filter(s => s.store_Account === "LMT");
       const storeMap = {};
       cheerStores.forEach(s => {
         storeMap[s.store_Name?.trim()] = s;

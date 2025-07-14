@@ -19,6 +19,7 @@ import {
 import { Card } from "@/components/ui/card";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
+import WishStoreTable from "./WishStoreTable";
 dayjs.extend(isoWeek);
 
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#0088FE", "#FFBB28"];
@@ -59,7 +60,7 @@ function OverviewPage() {
         fetch("/api/get/sale_Report_Store").then((res) => res.json()),
         fetch("/api/get/sale_Report_Report").then((res) => res.json()),
       ]);
-      const storesFiltered = storeRes.filter((s) => s.store_Type === "เชียร์ขาย & ชงชิม");
+      const storesFiltered = storeRes.filter((s) => s.store_Account === "LMT");
       setStores(storesFiltered);
 
       // Map ชื่อร้าน -> โซน
@@ -246,7 +247,7 @@ function OverviewPage() {
               <Line
                 type="monotone"
                 dataKey="count"
-                name="จำนวนร้าน (ไม่ซ้ำ)"
+                name="จำนวนร้านลง"
                 stroke="#0070f3"
                 strokeWidth={3}
                 dot
@@ -291,6 +292,11 @@ function OverviewPage() {
           </table>
         </div>
       </Card>
+
+         {/* ------- Section ใหม่: Wish Store Table ------- */}
+      <div className="col-span-1 md:col-span-2">
+        <WishStoreTable />
+      </div>
     </div>
   );
 }

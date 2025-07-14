@@ -12,10 +12,34 @@ import {
   YAxis,
   Legend,
   LabelList,
+  LineChart,
+  Line,
+  CartesianGrid,
 } from "recharts";
 import { Card } from "@/components/ui/card";
+import dayjs from "dayjs";
+import isoWeek from "dayjs/plugin/isoWeek";
+dayjs.extend(isoWeek);
 
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#0088FE", "#FFBB28"];
+
+function getUniqueStoresByWeek(reportData = []) {
+  const weekMap = {};
+  reportData.forEach((r) => {
+    const date = dayjs(r.report_SubmitAt);
+    const week = date.isoWeek();
+    const year = date.year();
+    const weekKey = `${year}-W${week}`;
+    if (!weekMap[weekKey]) weekMap[weekKey] = new Set();
+    weekMap[weekKey].add(r.store_Name);
+  });
+  return Object.entries(weekMap)
+    .map(([weekKey, storeSet]) => ({
+      week: weekKey,
+      count: storeSet.size,
+    }))
+    .sort((a, b) => a.week.localeCompare(b.week));
+}
 
 function OverviewPage() {
   const [stores, setStores] = useState([]);
@@ -25,9 +49,12 @@ function OverviewPage() {
   const [barData, setBarData] = useState([]);
   const [zoneOrder, setZoneOrder] = useState([]);
   const [top5Bills, setTop5Bills] = useState([]);
+  const [lineData, setLineData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAll = async () => {
+      setLoading(true);
       const [storeRes, reportRes] = await Promise.all([
         fetch("/api/get/sale_Report_Store").then((res) => res.json()),
         fetch("/api/get/sale_Report_Report").then((res) => res.json()),
@@ -91,8 +118,13 @@ function OverviewPage() {
         }))
         .sort((a, b) => b.billsSold - a.billsSold)
         .slice(0, 5);
-
       setTop5Bills(top5Arr);
+
+      // ===== Line Chart: Unique stores per week =====
+      const weekData = getUniqueStoresByWeek(matchedReports);
+      setLineData(weekData);
+
+      setLoading(false);
     };
     fetchAll();
   }, []);
@@ -149,52 +181,90 @@ function OverviewPage() {
           </PieChart>
         </ResponsiveContainer>
       </Card>
-      {/* Bar Chart (ยอดบิลรวมแต่ละโซน) */}
-      <Card className="p-4">
-        <div className="font-semibold mb-2">ยอดบิลรวมแต่ละโซน</div>
-        <ResponsiveContainer width="100%" height={240}>
-          <BarChart data={barData}>
-            <XAxis dataKey="area" />
-            <YAxis />
-            <Tooltip
-              formatter={(value, name, props) => {
-                const total = barData.reduce((sum, d) => sum + d.billsSold, 0);
-                const percent = total ? ((value / total) * 100).toFixed(1) : 0;
-                return [`${Number(value).toLocaleString()} (${percent}%)`, "ยอดบิลรวม"];
-              }}
-            />
-            <Legend />
-            <Bar dataKey="billsSold" name="ยอดบิลรวม">
-              {barData.map((entry, idx) => (
-                <Cell
-                  key={entry.area}
-                  fill={COLORS[idx % COLORS.length]}
-                />
-              ))}
-              <LabelList
-                dataKey="billsSold"
-                position="top"
-                content={({ x, y, width, value, index }) => {
+      {/* 2 กราฟคู่: Bar Chart และ Line Chart */}
+      <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Bar Chart (ยอดบิลรวมแต่ละโซน) */}
+        <Card className="p-4">
+          <div className="font-semibold mb-2">ยอดบิลรวมแต่ละโซน</div>
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={barData}>
+              <XAxis dataKey="area" />
+              <YAxis />
+              <Tooltip
+                formatter={(value, name, props) => {
                   const total = barData.reduce((sum, d) => sum + d.billsSold, 0);
                   const percent = total ? ((value / total) * 100).toFixed(1) : 0;
-                  return (
-                    <text
-                      x={x + width / 2}
-                      y={y - 6}
-                      textAnchor="middle"
-                      fill="#222"
-                      fontSize={12}
-                      fontWeight={600}
-                    >
-                      {`${Number(value).toLocaleString()} (${percent}%)`}
-                    </text>
-                  );
+                  return [`${Number(value).toLocaleString()} (${percent}%)`, "ยอดบิลรวม"];
                 }}
               />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
+              <Legend />
+              <Bar dataKey="billsSold" name="ยอดบิลรวม">
+                {barData.map((entry, idx) => (
+                  <Cell
+                    key={entry.area}
+                    fill={COLORS[idx % COLORS.length]}
+                  />
+                ))}
+                <LabelList
+                  dataKey="billsSold"
+                  position="top"
+                  content={({ x, y, width, value, index }) => {
+                    const total = barData.reduce((sum, d) => sum + d.billsSold, 0);
+                    const percent = total ? ((value / total) * 100).toFixed(1) : 0;
+                    return (
+                      <text
+                        x={x + width / 2}
+                        y={y - 6}
+                        textAnchor="middle"
+                        fill="#222"
+                        fontSize={12}
+                        fontWeight={600}
+                      >
+                        {`${Number(value).toLocaleString()} (${percent}%)`}
+                      </text>
+                    );
+                  }}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+        {/* Line Chart (จำนวนร้าน unique ต่อสัปดาห์) */}
+        <Card className="p-4">
+          <div className="font-semibold mb-2">จำนวนร้าน (Unique) ต่อสัปดาห์ vs Target</div>
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={lineData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="week"
+                tickFormatter={w => w.replace(/^20\d{2}-W/, "W")}
+                fontSize={12}
+              />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="count"
+                name="จำนวนร้าน (ไม่ซ้ำ)"
+                stroke="#0070f3"
+                strokeWidth={3}
+                dot
+              />
+              <Line
+                type="monotone"
+                dataKey={() => 85}
+                name="เป้าหมาย (85 ร้าน)"
+                stroke="#FF6B6B"
+                strokeDasharray="5 5"
+                dot={false}
+                isAnimationActive={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+          {loading && <div className="text-center text-sm text-muted-foreground mt-2">กำลังโหลด...</div>}
+        </Card>
+      </div>
       {/* Top 5 Store Table */}
       <Card className="p-4 col-span-1 md:col-span-2">
         <div className="font-semibold mb-2">Top 5 Store (ยอดบิลสูงสุด)</div>

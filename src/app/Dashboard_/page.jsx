@@ -2,12 +2,11 @@
 import React, { useState } from "react";
 import { Package, BarChart, Store, Menu, LogOut } from "lucide-react";
 import Product from "./components/ByProduct";
-import Performance from "./components/Performance";
 import ByStore from "./components/ByStore";
 import Overview from "./components/Overview";
 import { useRouter } from "next/navigation";
 
-const menu = [
+const MENU = [
   { key: "Overview", label: "Overview", icon: <BarChart size={20} /> },
   { key: "product", label: "Product", icon: <Package size={20} /> },
   { key: "store", label: "Store", icon: <Store size={20} /> },
@@ -15,7 +14,7 @@ const menu = [
 
 function DashboardPage() {
   const [open, setOpen] = useState(true);
-  const [page, setPage] = useState("performance");
+  const [page, setPage] = useState(MENU[0].key); // Default = Overview
   const router = useRouter();
 
   return (
@@ -24,28 +23,31 @@ function DashboardPage() {
       <aside
         className={`transition-all duration-300 bg-white shadow-lg h-screen 
         ${open ? "w-56" : "w-16"} flex flex-col`}
+        aria-label="Sidebar"
       >
         {/* Logo/Header */}
         <div className="flex items-center h-16 px-4 border-b">
-          <span className="font-extrabold text-lg text-blue-700">{open && "DASHBOARD"}</span>
+          <span className="font-extrabold text-lg text-blue-700 tracking-wider">{open && "DASHBOARD"}</span>
           <button
-            className="ml-auto p-1 focus:outline-none"
+            className="ml-auto p-1 focus:outline-none rounded-md hover:bg-blue-50 transition"
             aria-label="Toggle Sidebar"
             onClick={() => setOpen((v) => !v)}
+            tabIndex={0}
           >
             <Menu />
           </button>
         </div>
         {/* Menu */}
-        <nav className="flex-1 flex flex-col gap-1 mt-4">
-          {menu.map((item) => (
+        <nav className="flex-1 flex flex-col gap-1 mt-4" role="navigation" aria-label="Main Navigation">
+          {MENU.map((item) => (
             <button
               key={item.key}
               onClick={() => setPage(item.key)}
               className={`flex items-center gap-3 py-2 px-3 rounded-lg transition-all
-                ${page === item.key ? "bg-blue-50 font-bold text-blue-700" : "hover:bg-gray-100"}
+                ${page === item.key ? "bg-blue-50 font-bold text-blue-700 shadow-sm" : "hover:bg-gray-100"}
               `}
               aria-label={item.label}
+              tabIndex={0}
             >
               {item.icon}
               {open && <span>{item.label}</span>}
@@ -63,16 +65,17 @@ function DashboardPage() {
         </button>
       </aside>
       {/* Main Content */}
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-6 overflow-y-auto">
+        {page === "Overview" && (
+          <div>
+            <h2 className="text-xl font-bold mb-4">📊 Performance Overview</h2>
+            <Overview />
+          </div>
+        )}
         {page === "product" && (
           <div>
             <h2 className="text-xl font-bold mb-4">📦 จัดการสินค้า</h2>
-          </div>
-        )}
-        {page === "performance" && (
-          <div>
-            <h2 className="text-xl font-bold mb-4">📊 Performance Overview</h2>
-            <Overview/>
+            <Product />
           </div>
         )}
         {page === "store" && (

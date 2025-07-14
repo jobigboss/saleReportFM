@@ -9,14 +9,6 @@ import { saveAs } from "file-saver";
 
 // ---------- Options ----------
 const productOptions = {
-  ALL: "สินค้าทั้งหมด",
-  sur_Omega369Gold1: "Omega369 Gold 1+",
-  sur_Omega369Gold4: "Omega369 Gold 4+",
-  sur_Omega369Smart1: "Omega369 Smart 1+",
-  sur_Omega369Smart4: "Omega369 Smart 4+",
-  sur_Omega369Plain: "Omega369 (regular) รสจืด",
-  sur_Omega369Choco: "Omega369 (regular) รสช็อกโกแลต",
-  sur_Omega369Sweet: "Omega369 (regular) รสหวาน",
   sur_Foremost100: "Foremost 100%",
   sur_Foremost100low0: "Foremost 100% ไขมัน 0%",
   sur_Foremost100low: "Foremost 100% ไขมันต่ำ",
@@ -74,7 +66,9 @@ function DashboardPage() {
       try {
         const res = await fetch("/api/get/sale_Report_Report");
         const json = await res.json();
-        setReportData(json);
+        // filter LMT only
+        const lmtData = json.filter(item => item.store_Account === "LMT");
+        setReportData(lmtData);
       } catch (err) {
         console.error("❌ Error fetching report:", err);
       }

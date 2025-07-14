@@ -23,8 +23,8 @@ function WishStoreTable() {
     <Card className="p-4 mt-6">
       <div className="flex gap-2 mb-4">
         <button
-          className={`px-4 py-2 rounded ${type === "เชียร์ขาย" ? "bg-blue-600 text-white" : "bg-gray-100"}`}
-          onClick={() => setType("เชียร์ขาย")}
+          className={`px-4 py-2 rounded ${type === "เชียร์ขายอย่างเดียว" ? "bg-blue-600 text-white" : "bg-gray-100"}`}
+          onClick={() => setType("เชียร์ขายอย่างเดียว")}
         >
           เชียร์ขายอย่างเดียว
         </button>

@@ -247,7 +247,7 @@ function OverviewPage() {
               <Line
                 type="monotone"
                 dataKey="count"
-                name="จำนวนร้านลง"
+                name="Actual"
                 stroke="#0070f3"
                 strokeWidth={3}
                 dot
@@ -255,7 +255,7 @@ function OverviewPage() {
               <Line
                 type="monotone"
                 dataKey={() => 85}
-                name="เป้าหมาย (85 ร้าน)"
+                name="Target (85 ร้าน)"
                 stroke="#FF6B6B"
                 strokeDasharray="5 5"
                 dot={false}

@@ -6,7 +6,7 @@ const AdminSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true }, // hash แล้ว
     avatarUrl: { type: String, default: "" }, // optional
-    role: { type: String, enum: ["admin", "user","sup"], default: "user" },
+    role: { type: String, enum: ["admin", "user","sup","sale"], default: "user" },
     phone: { type: String, default: "" },
     isActive: { type: Boolean, default: true }, // <<< เพิ่ม field นี้
     resignedAt: { type: Date, default: null },  // <<< เพิ่ม field นี้

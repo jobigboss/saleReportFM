@@ -1,12 +1,24 @@
 "use client";
 import React, { use, useState, useEffect } from "react";
-import Link from "next/link"; // 👈 เพิ่ม import Link
-import { useRouter } from "next/navigation"; // สำหรับ router.push
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+// ตัวเลือกประเภทเชียร์ (enum)
+const CHEER_OPTIONS = [
+  "เชียร์ขาย & ชงชิม",
+  "เชียร์ขายอย่างเดียว"
+];
+
+// ฟังก์ชัน normalize (trim, match)
+function normalizeCheerType(raw) {
+  if (!raw) return "";
+  const found = CHEER_OPTIONS.find(opt => opt === raw.trim());
+  return found || "";
+}
 
 function formatDateInput(dateStr) {
   if (!dateStr) return "";
   const date = new Date(dateStr);
-  // ตัดเป็นวันที่ Local ของเครื่อง user
   const year = date.getFullYear();
   const month = (date.getMonth() + 1).toString().padStart(2, "0");
   const day = date.getDate().toString().padStart(2, "0");
@@ -22,7 +34,6 @@ async function getAdminNameByEmail(email) {
 }
 
 export default function DataReportEditPage(props) {
-  // 👇 สำคัญ
   const params = use(props.params);
   const { id } = params;
   const router = useRouter();
@@ -41,22 +52,28 @@ export default function DataReportEditPage(props) {
     }
   }, []);
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/admin/sale-report/${id}`);
-        const data = await res.json();
-        setReport(data);
-        setError("");
-      } catch {
-        setError("ไม่สามารถโหลดข้อมูลได้");
-      } finally {
-        setLoading(false);
-      }
+// ตัวอย่าง fetch แล้ว set state ตรงๆ (แต่แนะนำ trim/normalize เพื่อความชัวร์)
+useEffect(() => {
+  async function fetchData() {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/sale-report/${id}`);
+      const data = await res.json();
+      // บังคับ normalize (trim space) เพื่อให้ match option value
+      setReport({
+        ...data,
+        report_cheerType: (data.report_cheerType || "").trim(),
+      });
+      setError("");
+    } catch {
+      setError("ไม่สามารถโหลดข้อมูลได้");
+    } finally {
+      setLoading(false);
     }
-    if (id) fetchData();
-  }, [id]);
+  }
+  if (id) fetchData();
+}, [id]);
+
 
   function handleChange(e) {
     setReport((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -86,7 +103,7 @@ export default function DataReportEditPage(props) {
       });
       if (!res.ok) throw new Error("save error");
       alert("บันทึกข้อมูลเรียบร้อยแล้ว");
-      router.push("/admin/data-report"); // กลับหน้าหลังบันทึก
+      router.push("/admin/data-report");
     } catch {
       alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
     } finally {
@@ -96,7 +113,7 @@ export default function DataReportEditPage(props) {
 
   function handleCancel(e) {
     e.preventDefault();
-    router.push("/admin/data-report"); // กลับหน้ารายการ
+    router.push("/admin/data-report");
   }
 
   if (loading) return <div className="p-10 text-lg text-gray-500">Loading...</div>;
@@ -155,7 +172,51 @@ export default function DataReportEditPage(props) {
             className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-200 outline-none transition"
           />
         </div>
-        
+
+        {/* report_cheerType */}
+        <div>
+          <label className="block font-semibold mb-1 text-gray-700">ประเภทเชียร์</label>
+            <select
+              name="report_cheerType"
+              value={report.report_cheerType || ""}
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-200 outline-none transition bg-white"
+              required
+            >
+              {/* ถ้าไม่มีค่าใน DB ให้แสดง option default */}
+              {!report.report_cheerType && (
+                <option value="" disabled>
+                  -- กรุณาเลือกประเภทเชียร์ --
+                </option>
+              )}
+
+              {/* แสดงค่าปัจจุบันจาก DB เป็น option แรก (ถ้ามีค่า) */}
+              {report.report_cheerType && (
+                <option value={report.report_cheerType}>
+                  {report.report_cheerType}
+                  {report.report_cheerType !== "เชียร์ขาย & ชงชิม" &&
+                  report.report_cheerType !== "เชียร์ขายอย่างเดียว"
+                    ? " (ค่าเดิมที่ไม่มีในตัวเลือก)"
+                    : ""}
+                </option>
+              )}
+
+              {/* แสดงตัวเลือกอื่นที่เหลือ (ยกเว้นค่าปัจจุบัน) */}
+              {["เชียร์ขาย & ชงชิม", "เชียร์ขายอย่างเดียว"]
+                .filter(opt => opt !== report.report_cheerType)
+                .map(opt => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+            </select>
+            <div className="text-xs text-gray-400 mt-1">
+              (ค่าใน DB: {report.report_cheerType ? `"${report.report_cheerType}"` : "-"})
+            </div>
+
+        </div>
+
+
         {/* วันที่ */}
         <div>
           <label className="block font-semibold mb-1 text-gray-700">วันที่ลงรายงาน</label>
@@ -189,8 +250,8 @@ export default function DataReportEditPage(props) {
               handleChange({
                 target: {
                   name: "report_sampleCups",
-                  value: e.target.value === "" ? "" : Number(e.target.value), // Ensure number or empty
-                }
+                  value: e.target.value === "" ? "" : Number(e.target.value),
+                },
               })
             }
             className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-200 outline-none transition"
@@ -211,14 +272,13 @@ export default function DataReportEditPage(props) {
                 target: {
                   name: "report_billsSold",
                   value: e.target.value === "" ? "" : Number(e.target.value),
-                }
+                },
               })
             }
             className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-200 outline-none transition"
             placeholder="จำนวนบิล"
           />
         </div>
-
 
         {/* ปุ่ม */}
         <div className="flex gap-4 mt-8">
@@ -231,7 +291,6 @@ export default function DataReportEditPage(props) {
           >
             {saving ? "กำลังบันทึก..." : "บันทึก"}
           </button>
-          {/* ปุ่ม Cancel */}
           <button
             type="button"
             onClick={handleCancel}

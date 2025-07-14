@@ -20,33 +20,49 @@ export default function AdminPage() {
   const doLogin = async ({ email, password }) => {
   setLoading(true);
   setError("");
-  const res = await fetch("/api/admin/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  const data = await res.json();
-  setLoading(false);
+  try {
+    const res = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-  if (!res.ok) {
-    setError(data.error || "Login failed");
-    return;
-  }
+    let data = {};
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      data = await res.json();
+    } else {
+      // ป้องกัน error
+      data = { error: await res.text() };
+    }
+    setLoading(false);
 
-  localStorage.setItem("email", email);
-  localStorage.setItem("sessionId", data.sessionId);
-  localStorage.setItem("role", data.role);
-  localStorage.setItem("name", data.name);
+    if (!res.ok) {
+      setError(data.error || "Login failed");
+      return;
+    }
 
-  // === redirect ตาม role ===
-  if (data.role === "admin") {
-    router.replace("/admin/Menu");
-  } else if (data.role === "user") {
-    router.replace("/Dashboard");
-  } else {
-    setError("Role ไม่ถูกต้อง หรือยังไม่รองรับ");
+    // ... (set localStorage และ redirect ตาม role เหมือนเดิม)
+    localStorage.setItem("email", email);
+    localStorage.setItem("sessionId", data.sessionId);
+    localStorage.setItem("role", data.role);
+    localStorage.setItem("name", data.name);
+
+    if (data.role === "admin") {
+      router.replace("/admin/Menu");
+    } else if (data.role === "user") {
+      router.replace("/Dashboard");
+    } else if (data.role === "sale") {
+      router.replace("/Dashboard_");
+    } else {
+      setError("Role ไม่ถูกต้อง หรือยังไม่รองรับ");
+    }
+  } catch (err) {
+    setLoading(false);
+    setError("Network Error หรือ Server ไม่ตอบสนอง");
   }
 };
+
 
 
   const handleSubmit = (e) => {

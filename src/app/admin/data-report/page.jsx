@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import Nevbar from "../Menu/components/Nevbar";
 
-// debounce hook สำหรับ search
+// debounce hook
 function useDebouncedValue(value, delay = 300) {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function DataReportListPage() {
     if (dateTo && dateTo > today) setDateTo(today);
   }, [dateFrom, dateTo]);
 
-  // ดึงข้อมูลแต่ละหน้าแบบ filter/query
+  // fetch page (with filter/query)
   useEffect(() => {
     async function fetchPage() {
       setLoading(true);
@@ -84,8 +84,7 @@ export default function DataReportListPage() {
     dateFrom, dateTo
   ]);
 
-  // unique options สำหรับ filter group
-  // (ควรสร้าง endpoint แยกสำหรับดึง unique options เพื่อความเร็วในระบบใหญ่)
+  // unique filter options (ดูแค่ใน page นี้)
   const uniqueChannels = [...new Set(reports.map(r => r.store_Channel).filter(Boolean))];
   const uniqueAccounts = [...new Set(reports.map(r => r.store_Account).filter(Boolean))];
   const uniqueArea2 = [...new Set(reports.map(r => r.store_Area2).filter(Boolean))];
@@ -101,23 +100,19 @@ export default function DataReportListPage() {
     return `${day}/${month}/${year}`;
   }
 
-  // Options
   const cheerTypeOptions = [
     "เชียร์ขาย & ชงชิม",
     "เชียร์ขายอย่างเดียว"
   ];
 
-  // Pagination logic
   const totalPages = Math.ceil(total / perPage);
   const from = total === 0 ? 0 : (page - 1) * perPage + 1;
   const to = Math.min(page * perPage, total);
 
-  // Reset page if filter/search/perPage เปลี่ยน
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch, selectedCheerType, selectedChannel, selectedAccount, selectedArea2, dateFrom, dateTo, perPage]);
 
-  // ฟังก์ชันลบ (ถ้ายังต้องการ)
   async function handleDelete(reportId) {
     if (!window.confirm("ยืนยันการลบรายการนี้? ลบแล้วไม่สามารถย้อนคืนได้!")) return;
     try {
@@ -241,6 +236,8 @@ export default function DataReportListPage() {
                 <th className="px-4 py-3 text-left">ประเภทเชียร์</th>
                 <th className="px-4 py-3 text-left">Cup Serves</th>
                 <th className="px-4 py-3 text-left">Bills</th>
+                <th className="px-4 py-3 text-left">ผู้ลง</th>
+                <th className="px-4 py-3 text-left">เบอร์โทร</th>
                 <th className="px-4 py-3 text-center">Action</th>
               </tr>
             </thead>
@@ -257,6 +254,15 @@ export default function DataReportListPage() {
                   <td className="px-4 py-2">{report.report_cheerType || "-"}</td>
                   <td className="px-4 py-2">{report.report_sampleCups}</td>
                   <td className="px-4 py-2">{report.report_billsSold}</td>
+                  <td className="px-4 py-2">
+                    {report.userData
+                      ? `${report.userData.user_Name || ""} ${report.userData.user_Lastname || ""}`
+                      : "-"}
+                  </td>
+                  <td className="px-4 py-2">
+                    {report.userData ? report.userData.user_Phone : "-"}
+                  </td>
+
                   <td className="px-4 py-2 text-center">
                     <div className="flex gap-2 justify-center">
                       <Link href={`/admin/data-report/${report.report_ID}`}>
@@ -284,7 +290,7 @@ export default function DataReportListPage() {
               ))}
               {reports.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="text-center text-gray-400 py-6">
+                  <td colSpan={10} className="text-center text-gray-400 py-6">
                     ไม่พบข้อมูลที่ค้นหา
                   </td>
                 </tr>

@@ -27,8 +27,6 @@ export async function GET(req) {
 
     // Filter
     const query = {};
-
-    // Search (ชื่อร้าน, จังหวัด, ผู้ลง ฯลฯ)
     const search = searchParams.get("search") || "";
     if (search) {
         query.$or = [
@@ -37,8 +35,6 @@ export async function GET(req) {
             // เพิ่ม field อื่นๆ ที่ต้องการค้นหา
         ];
     }
-
-    // Filter ตัวอย่าง (ตาม code คุณ)
     if (searchParams.getAll("store_Channel").length)
         query.store_Channel = { $in: searchParams.getAll("store_Channel") };
     if (searchParams.getAll("store_Account").length)
@@ -48,7 +44,6 @@ export async function GET(req) {
     if (searchParams.getAll("report_cheerType").length)
         query.report_cheerType = { $in: searchParams.getAll("report_cheerType") };
 
-    // Date range
     if (searchParams.get("dateFrom") || searchParams.get("dateTo")) {
         query.report_SubmitAt = {};
         if (searchParams.get("dateFrom"))
@@ -57,15 +52,24 @@ export async function GET(req) {
             query.report_SubmitAt.$lte = new Date(searchParams.get("dateTo"));
     }
 
-    // Get total before pagination
     const total = await sale_Report.countDocuments(query);
 
-    // Paginate data
-    const rows = await sale_Report.find(query)
-        .sort({ report_SubmitAt: -1 })
-        .skip(skip)
-        .limit(perPage)
-        .lean();
+    // *** ส่วนนี้สำคัญ: aggregate+lookup ***
+    const rows = await sale_Report.aggregate([
+        { $match: query },
+        { $sort: { report_SubmitAt: -1 } },
+        { $skip: skip },
+        { $limit: perPage },
+        {
+            $lookup: {
+                from: "sale_Report_User", // ชื่อ collection (s)
+                localField: "user_LineID",
+                foreignField: "user_LineID",
+                as: "userData"
+            }
+        },
+        { $unwind: { path: "$userData", preserveNullAndEmptyArrays: true } }
+    ]);
 
     return NextResponse.json({ rows, total });
 }

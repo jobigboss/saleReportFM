@@ -13,7 +13,6 @@ function useDebouncedValue(value, delay = 300) {
   return debounced;
 }
 
-// util: YYYY-MM-DD ของวันนี้
 function todayStr() {
   const d = new Date();
   return d.toISOString().slice(0, 10);
@@ -21,8 +20,8 @@ function todayStr() {
 
 export default function DataReportListPage() {
   const [reports, setReports] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
 
   // Filter states
   const [selectedChannel, setSelectedChannel] = useState([]);
@@ -56,27 +55,40 @@ export default function DataReportListPage() {
     if (dateTo && dateTo > today) setDateTo(today);
   }, [dateFrom, dateTo]);
 
+  // ดึงข้อมูลแต่ละหน้าแบบ filter/query
   useEffect(() => {
-    async function fetchAll() {
-      const repRes = await fetch("/api/get/sale_Report_Report");
-      const repData = await repRes.json();
-      const userRes = await fetch("/api/get/sale_Report_User");
-      const userData = await userRes.json();
-      setReports(Array.isArray(repData) ? repData : []);
-      setUsers(Array.isArray(userData) ? userData : []);
+    async function fetchPage() {
+      setLoading(true);
+      const params = new URLSearchParams();
+      params.set("page", page);
+      params.set("perPage", perPage);
+      if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
+      if (dateFrom) params.set("dateFrom", dateFrom);
+      if (dateTo) params.set("dateTo", dateTo);
+      selectedChannel.forEach(v => params.append("store_Channel", v));
+      selectedAccount.forEach(v => params.append("store_Account", v));
+      selectedArea2.forEach(v => params.append("store_Area2", v));
+      selectedCheerType.forEach(v => params.append("report_cheerType", v));
+
+      const repRes = await fetch(`/api/get/sale_Report_Report?${params.toString()}`);
+      const { rows, total } = await repRes.json();
+      setReports(Array.isArray(rows) ? rows : []);
+      setTotal(total || 0);
       setLoading(false);
     }
-    fetchAll();
-  }, []);
+    fetchPage();
+  }, [
+    page, perPage,
+    debouncedSearch,
+    selectedChannel, selectedAccount, selectedArea2, selectedCheerType,
+    dateFrom, dateTo
+  ]);
 
-  // unique options
+  // unique options สำหรับ filter group
+  // (ควรสร้าง endpoint แยกสำหรับดึง unique options เพื่อความเร็วในระบบใหญ่)
   const uniqueChannels = [...new Set(reports.map(r => r.store_Channel).filter(Boolean))];
   const uniqueAccounts = [...new Set(reports.map(r => r.store_Account).filter(Boolean))];
   const uniqueArea2 = [...new Set(reports.map(r => r.store_Area2).filter(Boolean))];
-
-  function findUser(lineId) {
-    return users.find(u => u.user_LineID === lineId);
-  }
 
   function formatThaiDate(dateStr) {
     if (!dateStr) return "";
@@ -89,63 +101,14 @@ export default function DataReportListPage() {
     return `${day}/${month}/${year}`;
   }
 
-  function handleCheck(setter, value, checked) {
-    setter(prev =>
-      checked ? [...prev, value] : prev.filter(v => v !== value)
-    );
-  }
-
   // Options
   const cheerTypeOptions = [
     "เชียร์ขาย & ชงชิม",
     "เชียร์ขายอย่างเดียว"
   ];
 
-  // Filtering and search
-  const sortedReports = [...reports].sort((a, b) => {
-    if (!a.report_SubmitAt) return 1;
-    if (!b.report_SubmitAt) return -1;
-    return new Date(b.report_SubmitAt) - new Date(a.report_SubmitAt);
-  });
-
-  const filtered = sortedReports.filter(r => {
-    // ===== Filter ประเภทเชียร์ (report_cheerType) =====
-    if (
-      selectedCheerType.length &&
-      !selectedCheerType.includes((r.report_cheerType || "").trim())
-    ) return false;
-
-    if (selectedChannel.length && !selectedChannel.includes(r.store_Channel)) return false;
-    if (selectedAccount.length && !selectedAccount.includes(r.store_Account)) return false;
-    if (selectedArea2.length && !selectedArea2.includes(r.store_Area2)) return false;
-
-    if (dateFrom) {
-      if (!r.report_SubmitAt || new Date(r.report_SubmitAt) < new Date(dateFrom)) return false;
-    }
-    if (dateTo) {
-      if (!r.report_SubmitAt || new Date(r.report_SubmitAt) > new Date(dateTo)) return false;
-    }
-    if (debouncedSearch.trim()) {
-      const user = findUser(r.user_LineID);
-      const searchValue = debouncedSearch.trim().toLowerCase();
-      const allValues = [
-        r.report_ID,
-        r.store_Name,
-        r.store_Province,
-        r.report_cheerType,
-        formatThaiDate(r.report_SubmitAt),
-        user ? `${user.user_Name} ${user.user_Lastname}` : "",
-        user ? user.user_Phone : "",
-      ].join(" ").toLowerCase();
-      if (!allValues.includes(searchValue)) return false;
-    }
-    return true;
-  });
-
   // Pagination logic
-  const total = filtered.length;
   const totalPages = Math.ceil(total / perPage);
-  const paged = filtered.slice((page - 1) * perPage, page * perPage);
   const from = total === 0 ? 0 : (page - 1) * perPage + 1;
   const to = Math.min(page * perPage, total);
 
@@ -154,6 +117,7 @@ export default function DataReportListPage() {
     setPage(1);
   }, [debouncedSearch, selectedCheerType, selectedChannel, selectedAccount, selectedArea2, dateFrom, dateTo, perPage]);
 
+  // ฟังก์ชันลบ (ถ้ายังต้องการ)
   async function handleDelete(reportId) {
     if (!window.confirm("ยืนยันการลบรายการนี้? ลบแล้วไม่สามารถย้อนคืนได้!")) return;
     try {
@@ -191,7 +155,7 @@ export default function DataReportListPage() {
           <div className="w-full md:w-1/3">
             <input
               type="text"
-              placeholder="ค้นหาทุกช่อง (ชื่อร้าน, จังหวัด, ผู้ลง, ฯลฯ)"
+              placeholder="ค้นหาทุกช่อง (ชื่อร้าน, จังหวัด, ฯลฯ)"
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full px-4 py-2 rounded-xl border border-gray-200 shadow focus:outline-none focus:ring-2 focus:ring-blue-200 transition text-base"
@@ -277,57 +241,50 @@ export default function DataReportListPage() {
                 <th className="px-4 py-3 text-left">ประเภทเชียร์</th>
                 <th className="px-4 py-3 text-left">Cup Serves</th>
                 <th className="px-4 py-3 text-left">Bills</th>
-                <th className="px-4 py-3 text-left">ผู้ลง</th>
-                <th className="px-4 py-3 text-left">เบอร์โทร</th>
                 <th className="px-4 py-3 text-center">Action</th>
               </tr>
             </thead>
             <tbody>
-              {paged.map((report) => {
-                const user = findUser(report.user_LineID);
-                return (
-                  <tr
-                    key={report.report_ID}
-                    className="hover:bg-blue-50 transition"
-                  >
-                    <td className="px-4 py-2">{report.report_ID}</td>
-                    <td className="px-4 py-2">{report.store_Name}</td>
-                    <td className="px-4 py-2">{report.store_Province}</td>
-                    <td className="px-4 py-2">{formatThaiDate(report.report_SubmitAt)}</td>
-                    <td className="px-4 py-2">{report.report_cheerType || "-"}</td>
-                    <td className="px-4 py-2">{report.report_sampleCups}</td>
-                    <td className="px-4 py-2">{report.report_billsSold}</td>
-                    <td className="px-4 py-2">{user ? `${user.user_Name} ${user.user_Lastname}` : "-"}</td>
-                    <td className="px-4 py-2">{user ? user.user_Phone : "-"}</td>
-                    <td className="px-4 py-2 text-center">
-                      <div className="flex gap-2 justify-center">
-                        <Link href={`/admin/data-report/${report.report_ID}`}>
-                          <button
-                            className="px-3 py-1 rounded-full font-medium shadow transition 
-                              bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 text-white"
-                            style={{ minWidth: 62 }}
-                          >
-                            Edit
-                          </button>
-                        </Link>
+              {reports.map((report) => (
+                <tr
+                  key={report.report_ID}
+                  className="hover:bg-blue-50 transition"
+                >
+                  <td className="px-4 py-2">{report.report_ID}</td>
+                  <td className="px-4 py-2">{report.store_Name}</td>
+                  <td className="px-4 py-2">{report.store_Province}</td>
+                  <td className="px-4 py-2">{formatThaiDate(report.report_SubmitAt)}</td>
+                  <td className="px-4 py-2">{report.report_cheerType || "-"}</td>
+                  <td className="px-4 py-2">{report.report_sampleCups}</td>
+                  <td className="px-4 py-2">{report.report_billsSold}</td>
+                  <td className="px-4 py-2 text-center">
+                    <div className="flex gap-2 justify-center">
+                      <Link href={`/admin/data-report/${report.report_ID}`}>
                         <button
-                          onClick={() => handleDelete(report.report_ID)}
-                          className="px-3 py-1 rounded-full font-medium shadow transition
-                            bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-700 hover:to-pink-600 
-                            focus:outline-none focus:ring-2 focus:ring-red-200 text-white"
+                          className="px-3 py-1 rounded-full font-medium shadow transition 
+                            bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 text-white"
                           style={{ minWidth: 62 }}
-                          aria-label="Delete report"
                         >
-                          Delete
+                          Edit
                         </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              {paged.length === 0 && (
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(report.report_ID)}
+                        className="px-3 py-1 rounded-full font-medium shadow transition
+                          bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-700 hover:to-pink-600 
+                          focus:outline-none focus:ring-2 focus:ring-red-200 text-white"
+                        style={{ minWidth: 62 }}
+                        aria-label="Delete report"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {reports.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="text-center text-gray-400 py-6">
+                  <td colSpan={8} className="text-center text-gray-400 py-6">
                     ไม่พบข้อมูลที่ค้นหา
                   </td>
                 </tr>

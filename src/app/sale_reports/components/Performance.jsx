@@ -199,7 +199,7 @@ const TextAreaList = ({ title, values, setValues, placeholder }) => (
 
 const cheerTypeLabel = {
   sell_taste: "เชียร์ขาย & ชงชิม",
-  sell_only: "เชียร์ขายอย่างเดี่ยว",
+  sell_only: "เชียร์ขายอย่างเดียว",
 };
 
     const uploadImages = async (reportID) => {

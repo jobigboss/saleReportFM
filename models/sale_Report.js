@@ -13,6 +13,7 @@ const sale_ReportSchema = new mongoose.Schema({
   report_cheerType: { type: String },
   report_sampleCups: { type: Number },
   report_billsSold: { type: Number },
+  report_billstotal: { type: Number },
   report_ChangeBrands: { type: Object },
   report_customerQuestions:{ type: [String] },
   report_foremostPromos: { type: [String] },

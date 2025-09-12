@@ -107,6 +107,7 @@ const TextAreaList = ({ title, values, setValues, placeholder }) => (
   const [cheerType, setCheerType] = useState("");
   const [sampleCups, setSampleCups] = useState("");
   const [billsSold, setBillsSold] = useState("");
+  const [billstotal, setBillsTotal] = useState("");
   const [selectedBrands, setSelectedBrands] = useState({});
   const [brandCounts, setBrandCounts] = useState({});
   const [customerQuestions, setCustomerQuestions] = useState([""]);
@@ -385,6 +386,7 @@ function flattenChangeBrands(report_ChangeBrands) {
       report_cheerType: cheerTypeLabel[cheerType] || "",
       report_sampleCups: sampleCups,
       report_billsSold: billsSold,
+      report_billstotal: billstotal,
       report_ChangeBrands: brandCounts,
       report_customerQuestions: customerQuestions,
       report_foremostPromos: foremostPromos,
@@ -424,6 +426,7 @@ function flattenChangeBrands(report_ChangeBrands) {
       report_cheerType: cheerTypeLabel[cheerType] || "",
       report_sampleCups: sampleCups,
       report_billsSold: billsSold,
+      report_billstotal: billstotal,
       ...performance,
       report_customerQuestions: customerQuestions,
       report_foremostPromos: foremostPromos,
@@ -534,6 +537,12 @@ function flattenChangeBrands(report_ChangeBrands) {
                   label="🧾 ขายได้กี่บิลจากที่ชงชิม?"
                   value={billsSold}
                   onChange={setBillsSold}
+                  placeholder="ใส่จำนวนบิล"
+                />
+                <InputField
+                  label="🧾 ยอดบิลทั้งหมด?"
+                  value={billstotal}
+                  onChange={setBillsTotal}
                   placeholder="ใส่จำนวนบิล"
                 />
               </div>

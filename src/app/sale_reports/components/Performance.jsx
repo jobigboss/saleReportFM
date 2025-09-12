@@ -200,7 +200,7 @@ const TextAreaList = ({ title, values, setValues, placeholder }) => (
 
 const cheerTypeLabel = {
   sell_taste: "เชียร์ขาย & ชงชิม",
-  sell_only: "เชียร์ขายอย่างเดี่ยว",
+  sell_only: "เชียร์ขายอย่างเดียว",
 };
 
     const uploadImages = async (reportID) => {
@@ -506,7 +506,7 @@ function flattenChangeBrands(report_ChangeBrands) {
           <div className="grid grid-cols-2 gap-3">
             {[
               { key: "sell_taste", label: "🎉 เชียร์ขาย & ชงชิม" },
-              { key: "sell_only", label: "💬 เชียร์ขายอย่างเดี่ยว" }
+              { key: "sell_only", label: "💬 เชียร์ขายอย่างเดียว" }
             ].map(({ key, label }) => (
               <button
                 key={key}
